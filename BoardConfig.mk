@@ -61,6 +61,7 @@ TARGET_RECOVERY_PRE_COMMAND := "echo 1 > /data/.recovery_mode; sync;"
 TARGET_RECOVERY_PRE_COMMAND_CLEAR_REASON := true
 
 TARGET_PROVIDES_INIT_RC := true
+BOARD_MKE2FS := device/motorola/omap34com/releaseutils/mke2fs
 
 # Wifi related defines
 BOARD_WPA_SUPPLICANT_DRIVER := CUSTOM
@@ -116,6 +117,11 @@ endif
 # Hijack
 TARGET_NEEDS_MOTOROLA_HIJACK := true
 #BOARD_HIJACK_LOG_ENABLE := true
+
+# OTA Packaging
+TARGET_PROVIDES_RELEASETOOLS := true
+TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT := device/motorola/omap34com/releasetools/droid_ota_from_target_files
+TARGET_RELEASETOOL_IMG_FROM_TARGET_SCRIPT := device/motorola/omap34com/releasetools/droid_img_from_target_files
 
 # Misc.
 #BOARD_USE_BATTERY_CHARGE_COUNTER := true
