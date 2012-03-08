@@ -84,7 +84,7 @@ PRODUCT_PACKAGES += \
 	librs_jni
 
 # Key Layouts
-PRODUCT_COPY_FILES += \
+PRODUCT_COPY_FILES := \
 	$(DEVICE_PREBUILT)/usr/idc/cpcap-key.idc:system/usr/idc/cpcap-key.idc \
 	$(DEVICE_PREBUILT)/usr/idc/light-prox.idc:system/usr/idc/light-prox.idc \
 	$(DEVICE_PREBUILT)/usr/idc/qtouch-touchscreen.idc:system/usr/idc/qtouch-touchscreen.idc \
@@ -137,8 +137,6 @@ PRODUCT_COPY_FILES += \
 	frameworks/base/data/etc/android.hardware.touchscreen.multitouch.distinct.xml:system/etc/permissions/android.hardware.touchscreen.multitouch.distinct.xml \
 	frameworks/base/data/etc/android.hardware.sensor.light.xml:system/etc/permissions/android.hardware.sensor.light.xml \
 	frameworks/base/data/etc/android.hardware.sensor.proximity.xml:system/etc/permissions/android.hardware.sensor.proximity.xml \
-	frameworks/base/data/etc/android.hardware.telephony.cdma.xml:system/etc/permissions/android.hardware.telephony.cdma.xml \
-	frameworks/base/data/etc/android.hardware.telephony.gsm.xml:system/etc/permissions/android.hardware.telephony.gsm.xml \
 	frameworks/base/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml
 
 # these need to be here for the installer, just put them here for now
@@ -147,6 +145,11 @@ PRODUCT_COPY_FILES += \
     device/motorola/omap34com/releaseutils/tune2fs:system/bin/tune2fs \
     device/motorola/omap34com/releaseutils/check_kernel:system/etc/releaseutils/check_kernel \
     device/motorola/omap34com/releaseutils/finalize_release:system/etc/finalize_release
+
+# Hijack files
+PRODUCT_COPY_FILES += \
+    $(DEVICE_PREBUILT)/bin/hijack:system/bin/hijack \
+    $(DEVICE_PREBUILT)/bin/hijack.log_dump:system/bin/hijack.log_dump \
 
 # Copy all common kernel modules
 PRODUCT_COPY_FILES += $(shell \
