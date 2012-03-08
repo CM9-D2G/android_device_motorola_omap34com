@@ -94,6 +94,8 @@
     <integer-array name="config_autoBrightnessLcdBacklightValues">
         <item>48</item>
         <item>108</item>
+        <item>138</item>
+        <item>178</item>
         <item>206</item>
         <item>246</item>
     </integer-array>
@@ -108,6 +110,7 @@
         <item>0</item>
         <item>0</item>
         <item>0</item>
+        <item>0</item>
     </integer-array>
 
     <!-- Array of output values for keyboard backlight corresponding to the LUX values
@@ -117,6 +120,7 @@
     -->
     <integer-array name="config_autoBrightnessKeyboardBacklightValues">
         <item>255</item>
+        <item>0</item>
         <item>0</item>
         <item>0</item>
         <item>0</item>
@@ -168,7 +172,7 @@
          Wifi interfaces.  If the device doesn't want to support tethering over Wifi this
          should be empty.  An example would be "softap.*" -->
     <string-array translatable="false" name="config_tether_wifi_regexs">
-        <item>"tiap\\d"</item>
+        <item>"wlan0"</item>
     </string-array>
 
     <!-- List of regexpressions describing the interface (if any) that represent tetherable

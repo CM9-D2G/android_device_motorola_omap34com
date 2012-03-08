@@ -60,7 +60,7 @@ BOARD_HAS_LARGE_FILESYSTEM := true
 TARGET_RECOVERY_PRE_COMMAND := "echo 1 > /data/.recovery_mode; sync;"
 TARGET_RECOVERY_PRE_COMMAND_CLEAR_REASON := true
 
-TARGET_PROVIDES_INIT_RC := true
+#TARGET_PROVIDES_INIT_RC := true
 BOARD_MKE2FS := device/motorola/omap34com/releaseutils/mke2fs
 
 # Wifi related defines
@@ -115,7 +115,7 @@ COMMON_GLOBAL_CFLAGS += -DUSE_MOTOROLA_USERS
 endif
 
 # Hijack
-#TARGET_NEEDS_MOTOROLA_HIJACK := true
+TARGET_NEEDS_MOTOROLA_HIJACK := true
 #BOARD_HIJACK_LOG_ENABLE := true
 
 # OTA Packaging
