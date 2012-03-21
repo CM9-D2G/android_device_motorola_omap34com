@@ -48,20 +48,7 @@ using namespace std;
 
 #include "CameraHardwareInterface.h"
 
-#define YUV_CAM_FORMAT CameraParameters::PIXEL_FORMAT_YUV422I
-
-#define DISPLAY_RGB565
-
-#ifdef DISPLAY_RGB565
 #define OVERLAY_FORMAT OVERLAY_FORMAT_RGB565
-#define HAL_PIXEL_FORMAT HAL_PIXEL_FORMAT_RGB_565
-#else
-#define OVERLAY_FORMAT OVERLAY_FORMAT_RGBA8888
-#define HAL_PIXEL_FORMAT HAL_PIXEL_FORMAT_RGBA_8888
-#endif
-
-//Atrix :
-//#define YUV_CAM_FORMAT CameraParameters::PIXEL_FORMAT_YUV420P
 
 /* Prototypes and extern functions. */
 extern "C" android::sp<android::CameraHardwareInterface> HAL_openCameraHardware(int cameraId);
@@ -133,43 +120,6 @@ static inline void log_camera_params(const char* name, const CameraParameters pa
 #endif
 }
 
-//
-// http://code.google.com/p/android/issues/detail?id=823#c4
-//
-void Yuv420spToRgba8888(char* rgb, char* yuv420sp, int width, int height) {
-    int frameSize = width * height;
-    int colr = 0;
-    for (int j = 0, yp = 0, k = 0; j < height; j++) {
-        int uvp = frameSize + (j >> 1) * width, u = 0, v = 0;
-        for (int i = 0; i < width; i++, yp++) {
-            int y = (0xff & ((int) yuv420sp[yp])) - 16;
-            if (y < 0) y = 0;
-            if ((i & 1) == 0) {
-                 v = (0xff & yuv420sp[uvp++]) - 128;
-                 u = (0xff & yuv420sp[uvp++]) - 128;
-            }
-            int y1192 = 1192 * y;
-            int r = (y1192 + 1634 * v);
-            int g = (y1192 - 833 * v - 400 * u);
-            int b = (y1192 + 2066 * u);
-
-            if (r < 0) r = 0; else if (r > 262143) r = 262143;
-            if (g < 0) g = 0; else if (g > 262143) g = 262143;
-            if (b < 0) b = 0; else if (b > 262143) b = 262143;
-
-            /* for RGB8888 */
-            r = (r >> 10) & 0xff;
-            g = (g >> 10) & 0xff;
-            b = (b >> 10) & 0xff;
-
-            rgb[k++] = r;
-            rgb[k++] = g;
-            rgb[k++] = b;
-            rgb[k++] = 255;
-        }
-    }
-}
-
 void Yuv420spToRgb565(char* rgb, char* yuv420sp, int width, int height, int stride) {
     int frameSize = width * height;
     int padding = (stride - width) * 2; //two bytes per pixel for rgb565
@@ -202,63 +152,6 @@ void Yuv420spToRgb565(char* rgb, char* yuv420sp, int width, int height, int stri
             rgb[k++] = r << 3 | g >> 3;
         }
         k += padding;
-    }
-}
-
-void Yuv422iToRgba8888 (char* rgb, char* yuv422i, int width, int height) {
-    int yuv_index = 0;
-    int rgb_index = 0;
-    int frame_size = width * height;
-
-    for (int i = 0; i < frame_size/2; i++) {
-
-        int y1 = (0xff & ((int) yuv422i[yuv_index++])) - 16;
-        if (y1 < 0) y1 = 0;
-
-        int u = (0xff & yuv422i[yuv_index++]) - 128;
-
-        int y2 = (0xff & ((int) yuv422i[yuv_index++])) - 16;
-        if (y2 < 0) y2 = 0;
-
-        int v = (0xff & yuv422i[yuv_index++]) - 128;
-
-        int y1192 = 1192 * y1;
-        int r = (y1192 + 1634 * v);
-        int g = (y1192 - 833 * v - 400 * u);
-        int b = (y1192 + 2066 * u);
-
-        if (r < 0) r = 0; else if (r > 262143) r = 262143;
-        if (g < 0) g = 0; else if (g > 262143) g = 262143;
-        if (b < 0) b = 0; else if (b > 262143) b = 262143;
-
-        /* for RGB8888 */
-        r = (r >> 10) & 0xff;
-        g = (g >> 10) & 0xff;
-        b = (b >> 10) & 0xff;
-
-        rgb[rgb_index++] = r;
-        rgb[rgb_index++] = g;
-        rgb[rgb_index++] = b;
-        rgb[rgb_index++] = 255;
-
-        y1192 = 1192 * y2;
-        r = (y1192 + 1634 * v);
-        g = (y1192 - 833 * v - 400 * u);
-        b = (y1192 + 2066 * u);
-
-        if (r < 0) r = 0; else if (r > 262143) r = 262143;
-        if (g < 0) g = 0; else if (g > 262143) g = 262143;
-        if (b < 0) b = 0; else if (b > 262143) b = 262143;
-
-        /* for RGB8888 */
-        r = (r >> 10) & 0xff;
-        g = (g >> 10) & 0xff;
-        b = (b >> 10) & 0xff;
-
-        rgb[rgb_index++] = r;
-        rgb[rgb_index++] = g;
-        rgb[rgb_index++] = b;
-        rgb[rgb_index++] = 255;
     }
 }
 
@@ -350,23 +243,14 @@ void CameraHAL_ProcessPreviewData(char *frame, size_t size, legacy_camera_device
                     tries--;
                 }
                 if (!err) {
-                    // The data we get is in YUV... but Window is RGBA8888. It needs to be converted
+                    // The data we get is in YUV... but Window is RGBB565. It needs to be converted
                     switch (lcdev->previewFormat) {
-#ifndef DISPLAY_RGB565
-                    case OVERLAY_FORMAT_YUV422I:
-                        Yuv422iToRgba8888((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight);
-                        break;
-                    case OVERLAY_FORMAT_YUV420SP:
-                        Yuv420spToRgba8888((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight);
-                        break;
-#else
                     case OVERLAY_FORMAT_YUV422I:
                         Yuv422iToRgb565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight, stride);
                         break;
                     case OVERLAY_FORMAT_YUV420SP:
                         Yuv420spToRgb565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight, stride);
                         break;
-#endif
                     case OVERLAY_FORMAT:
                         memcpy(vaddr, frame, size);
                         break;
@@ -395,99 +279,74 @@ void queue_buffer_hook(void *data, void *buffer, size_t size) {
     }
 }
 
-void CameraHAL_HandlePreviewData(const sp<IMemory>& dataPtr, void* user)
-{
-    LOGV("%s", __FUNCTION__);
-    if (user != NULL) {
-        struct legacy_camera_device *lcdev = (struct legacy_camera_device *) user;
-        ssize_t  offset;
-        size_t   size;
-        sp<IMemoryHeap> mHeap = dataPtr->getMemory(&offset, &size);
-        char* buffer = (char*)mHeap->getBase() + offset;
-        CameraHAL_ProcessPreviewData(buffer, size, lcdev);
-    }
-}
-
 camera_memory_t* CameraHAL_GenClientData(const sp<IMemory> &dataPtr,
                                          legacy_camera_device *lcdev)
 {
-    ssize_t          offset;
-    size_t           size;
+    ssize_t offset;
+    size_t size;
+    void *data;
     camera_memory_t *clientData = NULL;
-    sp<IMemoryHeap> mHeap = dataPtr->getMemory(&offset, &size);
+    sp<IMemoryHeap> mHeap;
 
-    LOGV("CameraHAL_GenClientData: offset:%#x size:%#x base:%p\n",
-          (unsigned)offset, size, mHeap != NULL ? mHeap->base() : 0);
+    if (!lcdev->request_memory)
+        return NULL;
+
+    mHeap = dataPtr->getMemory(&offset, &size);
+    data = (void *)((char *)(mHeap->base()) + offset);
 
     clientData = lcdev->request_memory(-1, size, 1, lcdev->user);
-    if (clientData != NULL) {
-        LOGV("%s: clientData=%p clientData->data=%p", __FUNCTION__, clientData, clientData->data);
-        memcpy(clientData->data, (char *)(mHeap->base()) + offset, size);
-    } else {
-        LOGV("CameraHAL_GenClientData: ERROR allocating memory from client\n");
-    }
+    memcpy(clientData->data, data, size);
+
     return clientData;
 }
 
 void CameraHAL_DataCb(int32_t msg_type, const sp<IMemory>& dataPtr,
                       void *user)
 {
-    struct legacy_camera_device *lcdev = (struct legacy_camera_device *) user;
+    legacy_camera_device *lcdev = NULL;
+    camera_memory_t *mem = NULL;
 
-    LOGV("CameraHAL_DataCb: msg_type:%d user:%p\n", msg_type, user);
+    if (!user)
+        return;
 
-    if (lcdev->data_callback != NULL && lcdev->request_memory != NULL) {
-        camera_memory_t *mem = CameraHAL_GenClientData(dataPtr, lcdev);
-        if (mem != NULL) {
-            LOGV("%s: Posting data to client\n", __FUNCTION__);
-            if (msg_type == CAMERA_MSG_VIDEO_FRAME) {
-                lcdev->sentMem.push_back(mem);
-            }
-            lcdev->sentMem.push_back(mem);
-            lcdev->data_callback(msg_type, mem, 0, NULL, lcdev->user);
-        }
-    }
+    lcdev = (legacy_camera_device *) user;
+    mem = CameraHAL_GenClientData(dataPtr, lcdev);
 
-    if (msg_type == CAMERA_MSG_PREVIEW_FRAME && lcdev->overlay == NULL) {
-        LOGV("CameraHAL_DataCb: preview size = %dx%d\n", lcdev->previewWidth, lcdev->previewHeight);
-        CameraHAL_HandlePreviewData(dataPtr, lcdev);
-    }
+    if (lcdev->data_callback)
+        lcdev->data_callback(msg_type, mem, 0, NULL, lcdev->user);
 }
 
 void CameraHAL_DataTSCb(nsecs_t timestamp, int32_t msg_type,
                          const sp<IMemory>& dataPtr, void *user)
 {
-    struct legacy_camera_device *lcdev = (struct legacy_camera_device *) user;
+    legacy_camera_device *lcdev = NULL;
+    camera_memory_t *mem = NULL;
 
-    LOGV("CameraHAL_DataTSCb: timestamp:%lld msg_type:%d user:%p\n",
-          timestamp /1000, msg_type, user);
+    if (!user)
+        return;
 
-    if (lcdev->data_timestamp_callback != NULL && lcdev->request_memory != NULL) {
-        camera_memory_t *mem = CameraHAL_GenClientData(dataPtr, lcdev);
-        if (mem != NULL) {
-            LOGV("%s: Posting data to client timestamp:%lld\n", __FUNCTION__,
-                  systemTime());
-            lcdev->sentMem.push_back(mem);
-            lcdev->data_timestamp_callback(timestamp, msg_type, mem, /*index*/0, lcdev->user);
-            lcdev->hwif->releaseRecordingFrame(dataPtr);
-        } else {
-            LOGD("CameraHAL_DataTSCb: ERROR allocating memory from client\n");
-        }
-    }
+    lcdev = (legacy_camera_device *) user;
+    mem = CameraHAL_GenClientData(dataPtr, lcdev);
+
+
+    if (lcdev->data_timestamp_callback)
+        lcdev->data_timestamp_callback(timestamp, msg_type, mem, 0, lcdev->user);
+
+    lcdev->hwif->releaseRecordingFrame(dataPtr);
 }
 
 /* HAL helper functions. */
-void CameraHAL_NotifyCb(int32_t msg_type, int32_t ext1, int32_t ext2, void *user) {
-    struct legacy_camera_device *lcdev = (struct legacy_camera_device *) user;
+void CameraHAL_NotifyCb(int32_t msg_type, int32_t ext1, int32_t ext2, void *user)
+{
+    legacy_camera_device *lcdev = NULL;
 
-    if (NULL == lcdev) {
-      return;
-    }
+    if (!user)
+        return;
 
-    LOGV("%s: msg_type:%d ext1:%d ext2:%d user:%p\n", __FUNCTION__, msg_type, ext1, ext2, user);
-    if (lcdev->notify_callback != NULL) {
+    lcdev = (legacy_camera_device *) user;
+
+    if (lcdev->notify_callback)
         lcdev->notify_callback(msg_type, ext1, ext2, lcdev->user);
-    }
 }
 
 int CameraHAL_GetCam_Info(int camera_id, struct camera_info *info)
@@ -513,9 +372,9 @@ void CameraHAL_FixupParams(struct camera_device * device, CameraParameters &sett
      * it advertises so, but then sends "yuv422i-yuyv"
      * But nvidia tegra ones does...
      */
-    settings.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT, YUV_CAM_FORMAT);
-    settings.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FORMATS, YUV_CAM_FORMAT);
-    settings.setPreviewFormat(YUV_CAM_FORMAT);
+    settings.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT, CameraParameters::PIXEL_FORMAT_YUV422I);
+    settings.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FORMATS, CameraParameters::PIXEL_FORMAT_YUV422I);
+    settings.setPreviewFormat(CameraParameters::PIXEL_FORMAT_YUV422I);
 
     if (!settings.get("preview-size-values"))
         settings.set("preview-size-values", "176x144,320x240,352x288,480x360,640x480,848x480");
@@ -608,14 +467,6 @@ inline void destroyOverlay(legacy_camera_device *lcdev) {
     }
 }
 
-inline void clearHardwareIntf(legacy_camera_device *lcdev) {
-    LOGV("%s\n", __FUNCTION__);
-    if (lcdev->hwif != NULL) {
-        lcdev->hwif.clear();
-        lcdev->hwif = NULL;
-    }
-}
-
 /* Hardware Camera interface handlers. */
 int camera_set_preview_window(struct camera_device * device, struct preview_stream_ops *window) {
     int rv = -EINVAL;
@@ -676,7 +527,7 @@ int camera_set_preview_window(struct camera_device * device, struct preview_stre
 
     CameraParameters params(lcdev->hwif->getParameters());
     params.getPreviewSize(&lcdev->previewWidth, &lcdev->previewHeight);
-    int hal_pixel_format = HAL_PIXEL_FORMAT;
+    int hal_pixel_format = HAL_PIXEL_FORMAT_RGB_565;
 
     const char *str_preview_format = params.getPreviewFormat();
     LOGD("%s: preview format %s", __FUNCTION__, str_preview_format);
@@ -882,7 +733,6 @@ void camera_release(struct camera_device * device) {
     struct legacy_camera_device *lcdev = to_lcdev(device);
     LOGV("camera_release:\n");
     destroyOverlay(lcdev);
-    //clearHardwareIntf(lcdev);
     lcdev->hwif->release();
 }
 
@@ -901,9 +751,7 @@ int camera_device_close(hw_device_t* device) {
     if (lcdev != NULL) {
         camera_device_ops_t *camera_ops = lcdev->device.ops;
         if (camera_ops) {
-            //clearHardwareIntf(lcdev);
             free(camera_ops);
-            camera_ops = NULL;
         }
         destroyOverlay(lcdev);
         lcdev->overlay->destroy();
