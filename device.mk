@@ -50,12 +50,16 @@ PRODUCT_PACKAGES += \
 	libstagefrighthw \
 	libstagefright_omx \
 	libOMX_Core \
+	libOMX.TI.720P.Decoder.so \
+	libOMX.TI.720P.Encoder.so \
 	libOMX.TI.AAC.decode \
-	libOMX.TI.AAC.decode \
+	libOMX.TI.AAC.encode \
 	libOMX.TI.AMR.decode \
 	libOMX.TI.AMR.encode \
+	libOMX.TI.h264.splt.Encoder.so \
 	libOMX.TI.JPEG.Encoder \
 	libOMX.TI.MP3.decode \
+	libOMX.TI.mp4.splt.Encoder.so \
 	libOMX.TI.Video.Decoder \
 	libOMX.TI.Video.encoder \
 	libOMX.TI.WBAMR.decode \
