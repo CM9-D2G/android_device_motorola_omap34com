@@ -80,7 +80,6 @@ PRODUCT_PACKAGES += \
 	mot_boot_mode \
 	charge_only_mode \
 	com.android.future.usb.accessory \
-	com.android.nfc_extras \
 	FileManager \
 	Torch \
 	Usb
