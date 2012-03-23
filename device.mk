@@ -20,7 +20,6 @@
 #
 # Everything in this directory will become public
 
-DEVICE_PACKAGE_OVERLAYS := device/motorola/omap34com/overlay
 DEVICE_PREBUILT := device/motorola/omap34com/prebuilt
 
 # This device is xhdpi.  However the platform doesn't
@@ -192,10 +191,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	ro.telephony.sms_segment_size=160 \
 	ro.kernel.android.checkjni=0 \
 	dalvik.vm.checkjni=false \
-	dalvik.vm.dexopt-data-only=1 \
-	ro.vold.umsdirtyratio=20 \
-	net.dns1=8.8.8.8 \
-	net.dns2=8.8.4.4
+	dalvik.vm.dexopt-data-only=1
 
 # we have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
