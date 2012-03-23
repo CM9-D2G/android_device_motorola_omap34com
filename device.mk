@@ -125,7 +125,6 @@ PRODUCT_COPY_FILES += \
 	$(DEVICE_PREBUILT)/etc/media_profiles.xml:system/etc/media_profiles.xml \
 	$(DEVICE_PREBUILT)/etc/powervr.ini:system/etc/powervr.ini \
 	$(DEVICE_PREBUILT)/etc/vold.fstab:system/etc/vold.fstab \
-	$(DEVICE_PREBUILT)/media/bootanimation.zip:system/media/bootanimation.zip
 
 
 # Permissions files
