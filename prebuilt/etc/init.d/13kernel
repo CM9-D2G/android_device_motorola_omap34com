@@ -1,0 +1,6 @@
+#!/system/bin/sh
+
+#kernel tweaks
+echo "NO_NORMALIZED_SLEEPER" > /proc/sys/kernel/sched_features
+echo "NO_FAIR_SLEEPERS" > /proc/sys/kernel/sched_features
+echo "NO_GENTLE_FAIR_SLEEPERS" > /proc/sys/kernel/sched_features
