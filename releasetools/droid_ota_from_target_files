@@ -350,6 +350,7 @@ def WriteFullOTAPackage(input_zip, output_zip):
   script.Print("       Port by:      ")
   script.Print("     bikedude880     ")
   script.Print("     x13thangelx     ")
+  script.Print("      Jonman409      ")
   script.Print("                     ")
 
 # kernel check...
