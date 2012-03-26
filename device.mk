@@ -192,7 +192,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	ro.setupwizard.mode=OPTIONAL \
 	ro.telephony.call_ring.delay=1000 \
 	ro.telephony.call_ring.multiple=false \
-	ro.telephony.sms_segment_size=160 \
 	ro.kernel.android.checkjni=0 \
 	dalvik.vm.checkjni=false \
 	dalvik.vm.dexopt-data-only=1
