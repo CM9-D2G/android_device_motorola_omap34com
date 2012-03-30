@@ -81,7 +81,6 @@ WIFI_DRIVER_FW_AP_PATH      := "/system/etc/wifi/fw_tiwlan_ap.bin"
 
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
-BOARD_HAVE_BLUETOOTH_BCM := true
 
 # Sensors
 ENABLE_SENSORS_COMPAT := true
