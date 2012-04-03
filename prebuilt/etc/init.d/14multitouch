@@ -1,0 +1,4 @@
+#!/system/xbin/sh
+
+sleep 20
+insmod /system/lib/modules/multitouch.ko touch_num=5

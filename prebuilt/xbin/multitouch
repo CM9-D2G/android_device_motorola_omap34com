@@ -1,0 +1,25 @@
+#!/system/xbin/sh
+
+if [ -e /system/etc/init.d/14multitouch ]
+  then
+    busybox mount -o remount,rw /system
+    mv /system/etc/init.d/14multitouch /system/etc/init.d/14multitouch.sh
+    busybox mount -o remount,ro /system
+    echo "multitouch disabled on next boot"
+  elif [ -e /system/etc/init.d/14multitouch.sh ]
+    then
+      busybox mount -o remount,rw /system
+      mv /system/etc/init.d/14multitouch.sh /system/etc/init.d/14multitouch
+      busybox mount -o remount,ro /system
+      echo "multitouch enabled on next boot"
+fi
+
+echo -n "Would you like to reboot now? (Y/N)"
+    read REBOOT_YN
+    
+    case "$REBOOT_YN" in
+    Y|y) reboot
+         ;;
+    N|n) echo "not rebooting"
+         ;;
+    esac

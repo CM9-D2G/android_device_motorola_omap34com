@@ -21,6 +21,7 @@
 # Everything in this directory will become public
 
 DEVICE_PREBUILT := device/motorola/omap34com/prebuilt
+DEVICE_PACKAGE_OVERLAYS := device/motorola/omap34com/overlay
 
 # This device is xhdpi.  However the platform doesn't
 # currently contain all of the bitmaps at xhdpi density so
@@ -135,6 +136,8 @@ PRODUCT_COPY_FILES += \
 	$(DEVICE_PREBUILT)/etc/sysctl.conf:system/etc/sysctl.conf \
 	$(DEVICE_PREBUILT)/etc/init.d/12scheduler:system/etc/init.d/12scheduler \
 	$(DEVICE_PREBUILT)/etc/init.d/13kernel:system/etc/init.d/13kernel \
+	$(DEVICE_PREBUILT)/etc/init.d/14multitouch:system/etc/init.d/14multitouch \
+	$(DEVICE_PREBUILT)/xbin/multitouch:system/xbin/multitouch \
 	$(DEVICE_PREBUILT)/media/bootanimation.zip:system/media/bootanimation.zip
 
 
@@ -187,7 +190,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	ro.kernel.android.ril=yes \
 	ro.product.multi_touch_enabled=true \
 	ro.media.dec.jpeg.memcap=20000000 \
-	ro.ril.ignore.linkiperror=true \
 	ro.setupwizard.enable_bypass=1 \
 	ro.setupwizard.mode=OPTIONAL \
 	ro.telephony.call_ring.delay=1000 \

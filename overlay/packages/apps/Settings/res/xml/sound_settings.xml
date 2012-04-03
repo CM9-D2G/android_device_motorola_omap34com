@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen>
+    <CheckBoxPreference
+            android:key="sound_effects"
+            android:title="@string/sound_effects_enable_title"
+            android:defaultValue="false" />
+
+    <CheckBoxPreference
+            android:key="lock_sounds"
+            android:title="@string/lock_sounds_enable_title"
+            android:defaultValue="false" />
+</PreferenceScreen>
