@@ -306,6 +306,10 @@ class EdifyGenerator(object):
     self.script.append('set_perm_recursive(%d, %d, 0%o, 0%o, "%s");'
                        % (uid, gid, dmode, fmode, fn))
 
+  def DeleteRecursive(path):
+    """Recursively remove files from a directory."""
+    self.script.append('delete_recursive("%s");' % (path))
+
   def MakeSymlinks(self, symlink_list):
     """Create symlinks, given a list of (dest, link) pairs."""
     by_dest = {}
