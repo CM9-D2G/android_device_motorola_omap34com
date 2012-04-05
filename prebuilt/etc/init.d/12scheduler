@@ -5,7 +5,7 @@ SCHED="noop"
 
 insmod /system/lib/modules/sio-iosched.ko
 for i in /sys/block/*/queue; do
-    if [ -f "\$i/scheduler" ]; then echo "noop" > \$i/scheduler; fi;
+    if [ -f "\$i/scheduler" ]; then echo "$SCHED" > \$i/scheduler; fi;
     if [ -f "\$i/rotational" ] && [ "\`cat \$i/rotational\`" -ne 0 ]; then echo "0" > \$i/rotational; fi;
     if [ -f "\$i/iosched/low_latency" ]; then echo "1" > \$i/iosched/low_latency; fi;
     if [ -f "\$i/iosched/back_seek_penalty" ]; then echo "1" > \$i/iosched/back_seek_penalty; fi;
