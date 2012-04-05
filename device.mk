@@ -195,6 +195,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	ro.telephony.call_ring.delay=1000 \
 	ro.telephony.call_ring.multiple=false \
 	ro.kernel.android.checkjni=0 \
+	ro.HOME_APP_ADJ=1 \
 	dalvik.vm.checkjni=false \
 	dalvik.vm.dexopt-data-only=1
 

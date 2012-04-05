@@ -1,4 +1,0 @@
-#!/system/bin/sh
-
-#This helps with home screen redraws
-echo "ro.home_app_adj=1" > /data/local.prop
