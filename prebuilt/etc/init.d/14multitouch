@@ -1,4 +1,11 @@
 #!/system/xbin/sh
 
-sleep 20
-insmod /system/lib/modules/multitouch.ko touch_num=5
+TOUCH_POINTS=2
+MODULE=/system/lib/modules/multitouch.ko
+
+if [ $TOUCH_POINTS != 2 ]; then
+	if [ ! -f $MODULE ]; then
+		exit
+	fi
+	insmod $MODULE touch_num=$TOUCH_POINTS
+fi
