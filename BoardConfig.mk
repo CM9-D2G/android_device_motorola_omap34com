@@ -120,6 +120,7 @@ TARGET_NEEDS_MOTOROLA_HIJACK := true
 
 # OTA Packaging
 TARGET_PROVIDES_RELEASETOOLS := true
+TARGET_CUSTOM_RELEASETOOL := device/motorola/omap34com/releasetools/squisher
 TARGET_RELEASETOOL_OTA_FROM_TARGET_SCRIPT := device/motorola/omap34com/releasetools/droid_ota_from_target_files
 TARGET_RELEASETOOL_IMG_FROM_TARGET_SCRIPT := device/motorola/omap34com/releasetools/droid_img_from_target_files
 
