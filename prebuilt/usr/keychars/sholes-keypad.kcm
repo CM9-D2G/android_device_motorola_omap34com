@@ -250,3 +250,17 @@ key ENTER {
     shift, capslock:                    '\n'
     alt, shift+alt:                     '\n'
 }
+
+key ALT_LOCK {
+    label:                              '\uef05'
+    base:                               '\uef05'
+    shift, capslock:                    '\uef05'
+    alt, shift+alt:                     '\uef05'
+}
+
+key VOICE {
+    label:                              '\uef06'
+    base:                               '\uef06'
+    shift, capslock:                    '\uef06'
+    alt, shift+alt:                     '\uef06'
+}

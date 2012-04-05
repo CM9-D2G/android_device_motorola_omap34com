@@ -86,3 +86,6 @@ key 155   ENVELOPE          WAKE
 key 12    MINUS             WAKE_DROPPED
 key 13    EQUALS            WAKE_DROPPED
 key 215   AT                WAKE_DROPPED
+
+key 167   VOICE             WAKE_DROPPED
+key 125   ALT_LOCK          WAKE_DROPPED
