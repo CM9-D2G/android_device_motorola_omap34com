@@ -1,0 +1,57 @@
+#!/system/xbin/bash
+
+usage() {
+    echo "usage: multitouch (number of touch points)"
+    echo ""
+    echo "    Allowed values are 'off' and '2 <-> 10'"
+    echo "    Default value is '2' which disables the module"
+    echo "    example: multitouch 5"
+}
+
+save_setting() {
+    local new_touch_val=$1
+
+    echo "Remounting /system rw"
+    mount -o remount,rw /system > /dev/null 2>&1
+
+    echo "Storing our setting for next startup"
+    sed -i 's/TOUCH_POINTS=.*/TOUCH_POINTS='$new_touch_val/ /system/etc/init.d/14multitouch
+
+    echo "Remounting /system ro"
+    mount -o remount,ro /system > /dev/null 2>&1
+
+    if [ $new_touch_val -eq 2 ]; then
+        echo "multitouch disabled on next boot"
+    else
+        echo "multitouch enabled on next boot with $new_touch_val touch points"
+    fi
+
+    echo -n "Would you like to reboot now? (Y/N)"
+    read REBOOT_YN
+    case "$REBOOT_YN" in
+        Y|y)
+            reboot
+        ;;
+
+        N|n)
+            exit
+        ;;
+    esac
+}
+
+new_touch_val=$1
+case "$new_touch_val" in
+    [0-9])
+        if [ "$new_touch_val" -lt 2 -o "$new_touch_val" -gt 10 ]; then
+            echo "Invalid multitouch value"
+            usage
+            exit
+        fi
+        save_setting $new_touch_val
+        exit
+    ;;
+    *)
+        usage
+        exit
+    ;;
+esac
