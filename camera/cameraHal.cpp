@@ -48,8 +48,6 @@ using namespace std;
 
 #include "CameraHardwareInterface.h"
 
-#define OVERLAY_FORMAT OVERLAY_FORMAT_RGB565
-
 /* Prototypes and extern functions. */
 extern "C" android::sp<android::CameraHardwareInterface> HAL_openCameraHardware(int cameraId);
 extern "C" int HAL_getNumberOfCameras();
