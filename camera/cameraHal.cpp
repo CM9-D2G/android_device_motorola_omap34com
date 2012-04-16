@@ -81,7 +81,7 @@ struct legacy_camera_device {
     camera_device_t device;
     int id;
 
-    // New world
+    /* New world */
     camera_notify_callback         notify_callback;
     camera_data_callback           data_callback;
     camera_data_timestamp_callback data_timestamp_callback;
@@ -89,7 +89,7 @@ struct legacy_camera_device {
     void                          *user;
     preview_stream_ops            *window;
 
-    // Old world
+    /* Old world */
     sp<CameraHardwareInterface>    hwif;
     gralloc_module_t const        *gralloc;
     vector<camera_memory_t*>       sentMem;
@@ -113,24 +113,25 @@ void Yuv422iToRgb565 (char* rgb, char* yuv422i, int width, int height, int strid
     int yuv_index = 0;
     int rgb_index = 0;
     int padding = (stride - width) * 2; //two bytes per pixel for rgb565
+    int j, i, y1192;
+    int y1, u, y2, v;
+    int r, g, b;
 
-    for (int j = 0; j < height; j++) {
-        for (int i = 0; i < width / 2; i++) {
+    for (j = 0; j < height; j++) {
+        for (i = 0; i < width / 2; i++) {
 
-            int y1 = (0xff & ((int) yuv422i[yuv_index++])) - 16;
+            y1 = (0xff & yuv422i[yuv_index++]) - 16;
+            u  = (0xff & yuv422i[yuv_index++]) - 128;
+            y2 = (0xff & yuv422i[yuv_index++]) - 16;
+            v  = (0xff & yuv422i[yuv_index++]) - 128;
+
             if (y1 < 0) y1 = 0;
-
-            int u = (0xff & yuv422i[yuv_index++]) - 128;
-
-            int y2 = (0xff & ((int) yuv422i[yuv_index++])) - 16;
             if (y2 < 0) y2 = 0;
 
-            int v = (0xff & yuv422i[yuv_index++]) - 128;
-
-            int y1192 = 1192 * y1;
-            int r = (y1192 + 1634 * v);
-            int g = (y1192 - 833 * v - 400 * u);
-            int b = (y1192 + 2066 * u);
+            y1192 = 1192 * y1;
+            r = (y1192 + 1634 * v);
+            g = (y1192 - 833 * v - 400 * u);
+            b = (y1192 + 2066 * u);
 
             if (r < 0) r = 0; else if (r > 262143) r = 262143;
             if (g < 0) g = 0; else if (g > 262143) g = 262143;
