@@ -66,20 +66,26 @@ TARGET_RECOVERY_PRE_COMMAND_CLEAR_REASON := true
 BOARD_MKE2FS := device/motorola/omap34com/releaseutils/mke2fs
 
 # Wifi related defines
-BOARD_WPA_SUPPLICANT_DRIVER := CUSTOM
-WPA_SUPPLICANT_VERSION      := VER_0_6_X
-BOARD_WPA_SUPPLICANT_PRIVATE_LIB := libCustomWifi
-#BOARD_HOSTAPD_DRIVER        := NL80211
-#BOARD_HOSTAPD_PRIVATE_LIB   := lib_driver_cmd_bcmdhd
 BOARD_WLAN_DEVICE           := wl1271
-#BOARD_SOFTAP_DEVICE         := wl1271
+WPA_SUPPLICANT_VERSION      := VER_0_6_X
+BOARD_WPA_SUPPLICANT_DRIVER := CUSTOM
 WIFI_DRIVER_MODULE_PATH     := "/system/lib/modules/tiwlan_drv.ko"
-BOARD_WLAN_TI_STA_DK_ROOT   := system/wlan/ti/wilink_6_1
-WIFI_DRIVER_MODULE_ARG      := ""
-WIFI_DRIVER_MODULE_NAME     := "tiwlan_drv"
-WIFI_FIRMWARE_LOADER        := "wlan_loader"
+WIFI_DRIVER_MODULE_NAME     := tiwlan_drv
 WIFI_DRIVER_FW_STA_PATH     := "/system/etc/wifi/fw_wlan1271.bin"
+WIFI_FIRMWARE_LOADER        := wlan_loader
+PRODUCT_WIRELESS_TOOLS      := true
+BOARD_SOFTAP_DEVICE         := wl1271
 WIFI_DRIVER_FW_AP_PATH      := "/system/etc/wifi/fw_tiwlan_ap.bin"
+WPA_SUPPL_APPROX_USE_RSSI   := true
+WPA_SUPPL_WITH_SIGNAL_POLL  := true
+# CM9
+WIFI_AP_DRIVER_MODULE_PATH  := "/system/lib/modules/tiap_drv.ko"
+WIFI_AP_DRIVER_MODULE_NAME  := tiap_drv
+WIFI_AP_FIRMWARE_LOADER     := wlan_ap_loader
+WIFI_AP_DRIVER_MODULE_ARG   := ""
+BOARD_HOSTAPD_NO_ENTROPY    := true
+BOARD_HOSTAPD_DRIVER        := true
+BOARD_HOSTAPD_DRIVER_NAME   := wilink
 
 # Bluetooth
 BOARD_HAVE_BLUETOOTH := true
