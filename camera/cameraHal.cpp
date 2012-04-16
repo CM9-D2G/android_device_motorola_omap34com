@@ -354,6 +354,14 @@ void CameraHAL_FixupParams(struct camera_device *device,
 
     settings.set("max-zoom", "4");
 
+    /* ISO */
+    settings.set("iso", "auto");
+    if (!settings.get("iso-values")) {
+        const char *moto_iso_values = settings.get("mot-picture-iso-values");
+        if (moto_iso_values)
+            settings.set("iso-values", moto_iso_values);
+    }
+
     /* defy: required to prevent panorama crash, but require also opengl ui */
     const char *fps_range_values = "(1000,30000),(1000,25000),(1000,20000),"
                                    "(1000,24000),(1000,15000),(1000,10000)";
