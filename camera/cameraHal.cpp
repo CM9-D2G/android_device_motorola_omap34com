@@ -354,11 +354,6 @@ void CameraHAL_FixupParams(struct camera_device *device,
 
     settings.set("max-zoom", "4");
 
-    settings.set(android::CameraParameters::KEY_ISO_MODE, "auto");
-    const char *iso_modes = settings.get("mot-picture-iso-values");
-    if (iso_modes)
-        settings.set(android::CameraParameters::KEY_SUPPORTED_ISO_MODES, iso_modes);
-
     /* defy: required to prevent panorama crash, but require also opengl ui */
     const char *fps_range_values = "(1000,30000),(1000,25000),(1000,20000),"
                                    "(1000,24000),(1000,15000),(1000,10000)";
