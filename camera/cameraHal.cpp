@@ -1,9 +1,10 @@
-/* vim:et:sts=4:sw=4
+/*
  *
  * Copyright (C) 2012, rondoval (ms2), Epsylon3 (defy)
  * Copyright (C) 2012, Won-Kyu Park
  * Copyright (C) 2012, Raviprasad V Mummidi
  * Copyright (C) 2011, Ivan Zupan
+ * Copyright (C) 2012, JB1tz
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +17,6 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */
-
-/**
- * ChangeLog
- *
- * 2012/01/19 - based on Raviprasad V Mummidi's code and some code by Ivan Zupan
- * 2012/01/21 - cleaned up by wkpark.
- * 2012/02/09 - first working version for P990/SU660 with software rendering
- *            - need to revert "MemoryHeapBase: Save and binderize the offset"
- *              commit f24c4cd0f204068a17f61f1c195ccf140c6c1d67.
- *            - some wrapper functions are needed (please see the libui.patch)
- * 2012/02/19 - Generic cleanup and overlay support (for Milestone 2)
  */
 
 #define LOG_TAG "CameraHAL"
@@ -86,7 +75,7 @@ camera_module_t HAL_MODULE_INFO_SYM = {
 
 namespace android {
 
-int camera_set_preview_window(struct camera_device * device, struct preview_stream_ops *window);
+int camera_set_preview_window(struct camera_device *device, struct preview_stream_ops *window);
 
 struct legacy_camera_device {
     camera_device_t device;
@@ -318,14 +307,15 @@ int CameraHAL_GetCam_Info(int camera_id, struct camera_info *info)
     return rv;
 }
 
-void CameraHAL_FixupParams(struct camera_device * device, CameraParameters &settings)
+void CameraHAL_FixupParams(struct camera_device *device,
+                           CameraParameters &settings)
 {
-    /* Motorola omap cameras doesn't support YUV420sp...
-     * it advertises so, but then sends "yuv422i-yuyv"
-     * But nvidia tegra ones does...
-     */
-    settings.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT, CameraParameters::PIXEL_FORMAT_YUV422I);
-    settings.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FORMATS, CameraParameters::PIXEL_FORMAT_YUV422I);
+    settings.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT,
+                 CameraParameters::PIXEL_FORMAT_YUV422I);
+
+    settings.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FORMATS,
+                 CameraParameters::PIXEL_FORMAT_YUV422I);
+
     settings.setPreviewFormat(CameraParameters::PIXEL_FORMAT_YUV422I);
 
     if (!settings.get("preview-size-values"))
@@ -337,11 +327,7 @@ void CameraHAL_FixupParams(struct camera_device * device, CameraParameters &sett
     if (!settings.get("mot-video-size-values"))
         settings.set("mot-video-size-values", "176x144,320x240,352x288,640x480,848x480");
 
-    //LibSOCJordanCamera( 2113): Failed substring capabilities check, unsupported parameter newparam=on parseTable[i].key=focus-mode,currparam=auto
-    const char *str_focus = settings.get(android::CameraParameters::KEY_FOCUS_MODE);
-    if (strcmp(str_focus, "on") == 0) {
-        settings.set(android::CameraParameters::KEY_FOCUS_MODE, "auto");
-    }
+    settings.set(android::CameraParameters::KEY_FOCUS_MODE, "auto");
 
     /* defy: focus locks the camera, but dunno how to disable it... */
     if (!settings.get(android::CameraParameters::KEY_SUPPORTED_FOCUS_MODES))
@@ -349,7 +335,6 @@ void CameraHAL_FixupParams(struct camera_device * device, CameraParameters &sett
 
     if (!settings.get(android::CameraParameters::KEY_SUPPORTED_EFFECTS))
         settings.set(android::CameraParameters::KEY_SUPPORTED_EFFECTS, "none,mono,sepia,negative,solarize,red-tint,green-tint,blue-tint");
-//incandescent,warm-fluorescent,cloudy-daylight,twilight,shade,red-eye,torch,fireworks,sports,party,candlelight,50hz,60hz
 
     if (!settings.get(android::CameraParameters::KEY_SUPPORTED_SCENE_MODES))
         settings.set(android::CameraParameters::KEY_SUPPORTED_SCENE_MODES,
@@ -363,11 +348,9 @@ void CameraHAL_FixupParams(struct camera_device * device, CameraParameters &sett
     if (!settings.get("mot-areas-to-focus"))
         settings.set("mot-areas-to-focus", "0");
 
-    //if (!settings.get("zoom-ratios"))
-        settings.set("zoom-ratios", "100,200,300,400,500,600");
+    settings.set("zoom-ratios", "100,200,300,400,500,600");
 
-    //if (!settings.get("max-zoom"))
-        settings.set("max-zoom", "4");
+    settings.set("max-zoom", "4");
 
     /* defy: required to prevent panorama crash, but require also opengl ui */
     const char *fps_range_values = "(1000,30000),(1000,25000),(1000,20000),"
@@ -375,7 +358,7 @@ void CameraHAL_FixupParams(struct camera_device * device, CameraParameters &sett
     if (!settings.get(android::CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE))
         settings.set(android::CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE, fps_range_values);
 
-   const char *preview_fps_range = "1000,30000";
+    const char *preview_fps_range = "1000,30000";
     if (!settings.get(android::CameraParameters::KEY_PREVIEW_FPS_RANGE))
         settings.set(android::CameraParameters::KEY_PREVIEW_FPS_RANGE, preview_fps_range);
 
@@ -503,7 +486,7 @@ int camera_set_preview_window(struct camera_device *device,
                                  lcdev->previewHeight,
                                  lcdev->previewFormat,
                                  queue_buffer_hook,
-                                 (void*) lcdev);
+                                 (void *) lcdev);
     lcdev->hwif->setOverlay(lcdev->overlay);
 
     return NO_ERROR;
@@ -513,7 +496,8 @@ void camera_set_callbacks(struct camera_device *device,
                              camera_notify_callback notify_cb,
                              camera_data_callback data_cb,
                              camera_data_timestamp_callback data_cb_timestamp,
-                             camera_request_memory get_memory, void *user)
+                             camera_request_memory get_memory,
+                             void *user)
 {
     legacy_camera_device *lcdev = NULL;
 
