@@ -157,14 +157,6 @@ PRODUCT_COPY_FILES += \
 	frameworks/base/data/etc/android.software.sip.voip.xml:system/etc/permissions/android.software.sip.voip.xml \
 	packages/wallpapers/LivePicker/android.software.live_wallpaper.xml:/system/etc/permissions/android.software.live_wallpaper.xml \
 
-# wifi
-PRODUCT_COPY_FILES += \
-	$(DEVICE_PREBUILT)/etc/wifi/fw_tiwlan_ap.bin:system/etc/wifi/fw_tiwlan_ap.bin \
-	$(DEVICE_PREBUILT)/etc/wifi/fw_wlan1271.bin:system/etc/wifi/fw_wlan1271.bin \
-	$(DEVICE_PREBUILT)/etc/wifi/tiwlan.ini:system/etc/wifi/tiwlan.ini \
-	$(DEVICE_PREBUILT)/etc/wifi/tiwlan_ap.ini:system/etc/wifi/tiwlan_ap.ini \
-	$(DEVICE_PREBUILT)/etc/wifi/wpa_supplicant.conf:system/etc/wifi/wpa_supplicant.conf
-
 # these need to be here for the installer, just put them here for now
 PRODUCT_COPY_FILES += \
 	device/motorola/omap34com/releaseutils/mke2fs:system/bin/mke2fs \
