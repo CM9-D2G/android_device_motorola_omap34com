@@ -44,6 +44,11 @@
 #include <utils/Errors.h>
 #include <vector>
 
+#define CAMHAL_GRALLOC_USAGE GRALLOC_USAGE_HW_TEXTURE | \
+			     GRALLOC_USAGE_HW_RENDER | \
+			     GRALLOC_USAGE_SW_READ_RARELY | \
+			     GRALLOC_USAGE_SW_WRITE_NEVER
+
 using namespace std;
 
 #include "CameraHardwareInterface.h"
@@ -192,14 +197,14 @@ void CameraHAL_ProcessPreviewData(char *frame, size_t size, legacy_camera_device
         int tries = 5;
         int err = 0;
         void *vaddr;
-        err = lcdev->gralloc->lock(lcdev->gralloc, *bufHandle, GRALLOC_USAGE_SW_WRITE_OFTEN | GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER,
+        err = lcdev->gralloc->lock(lcdev->gralloc, *bufHandle, CAMHAL_GRALLOC_USAGE,
                                    0, 0, lcdev->previewWidth, lcdev->previewHeight, &vaddr);
         while (err && tries) {
             // Pano frames almost always need a retry... or not
             LOGW("%s: gralloc lock retry", __FUNCTION__);
             usleep(1000);
             lcdev->gralloc->unlock(lcdev->gralloc, *bufHandle);
-            err = lcdev->gralloc->lock(lcdev->gralloc, *bufHandle, GRALLOC_USAGE_SW_WRITE_OFTEN,
+            err = lcdev->gralloc->lock(lcdev->gralloc, *bufHandle, CAMHAL_GRALLOC_USAGE,
                                        0, 0, lcdev->previewWidth, lcdev->previewHeight, &vaddr);
             tries--;
         }
@@ -271,7 +276,6 @@ void CameraHAL_DataTSCb(nsecs_t timestamp, int32_t msg_type,
 
     lcdev = (legacy_camera_device *) user;
     mem = CameraHAL_GenClientData(dataPtr, lcdev);
-
 
     if (lcdev->data_timestamp_callback)
         lcdev->data_timestamp_callback(timestamp, msg_type, mem, 0, lcdev->user);
@@ -485,7 +489,7 @@ int camera_set_preview_window(struct camera_device *device,
     lcdev->previewFormat = getOverlayFormatFromString(str_preview_format);
     lcdev->previewBpp = getBppFromOverlayFormat(lcdev->previewFormat);
 
-    if (window->set_usage(window, GRALLOC_USAGE_SW_WRITE_OFTEN | GRALLOC_USAGE_SW_READ_OFTEN)) {
+    if (window->set_usage(window, CAMHAL_GRALLOC_USAGE)) {
         LOGE("%s: could not set usage on gralloc buffer", __FUNCTION__);
         return -1;
     }
@@ -500,7 +504,7 @@ int camera_set_preview_window(struct camera_device *device,
                                  lcdev->previewFormat,
                                  queue_buffer_hook,
                                  (void*) lcdev);
-      lcdev->hwif->setOverlay(lcdev->overlay);
+    lcdev->hwif->setOverlay(lcdev->overlay);
 
     return NO_ERROR;
 }
