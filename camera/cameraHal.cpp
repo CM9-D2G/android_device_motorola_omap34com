@@ -318,6 +318,8 @@ void CameraHAL_FixupParams(struct camera_device *device,
 
     settings.setPreviewFormat(CameraParameters::PIXEL_FORMAT_YUV422I);
 
+    settings.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO, "640x480");
+
     if (!settings.get("preview-size-values"))
         settings.set("preview-size-values", "176x144,320x240,352x288,480x360,640x480,848x480");
 
@@ -365,7 +367,7 @@ void CameraHAL_FixupParams(struct camera_device *device,
     // Fix preview ratio (for wide picture and video formats)
     // should be fixed in camera app... ratio defines, to allow small sizes (panorama)
 
-    const char *target_size = settings.get("picture-size");
+/*    const char *target_size = settings.get("picture-size");
     float ratio = 0.0;
     int height = 0, width = atoi(target_size);
     char *sh;
@@ -390,6 +392,7 @@ void CameraHAL_FixupParams(struct camera_device *device,
         legacy_camera_device *lcdev = (legacy_camera_device*) device;
         camera_set_preview_window(device, lcdev->window);
     }
+*/
 
     LOGD("Parameters fixed up");
 }
