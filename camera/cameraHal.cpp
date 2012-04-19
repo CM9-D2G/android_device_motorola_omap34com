@@ -92,13 +92,10 @@ struct legacy_camera_device {
     /* Old world */
     sp<CameraHardwareInterface>    hwif;
     gralloc_module_t const        *gralloc;
-    vector<camera_memory_t*>       sentMem;
     sp<Overlay>                    overlay;
 
     int32_t                        previewWidth;
     int32_t                        previewHeight;
-    OverlayFormats                 previewFormat;
-    uint32_t                       previewBpp;
 };
 
 static inline void log_camera_params(const char* name,
@@ -420,7 +417,7 @@ int camera_set_preview_window(struct camera_device *device,
                               struct preview_stream_ops *window)
 {
     int rv = -EINVAL;
-    const int kBufferCount = 6;
+    const int kBufferCount = 4;
     legacy_camera_device *lcdev = NULL;
 
     LOGV("%s: Window %p\n", __FUNCTION__, window);
@@ -477,26 +474,25 @@ int camera_set_preview_window(struct camera_device *device,
 
     CameraParameters params(lcdev->hwif->getParameters());
     params.getPreviewSize(&lcdev->previewWidth, &lcdev->previewHeight);
-    int hal_pixel_format = HAL_PIXEL_FORMAT_RGB_565;
 
     const char *str_preview_format = params.getPreviewFormat();
-    LOGD("%s: preview format %s", __FUNCTION__, str_preview_format);
-    lcdev->previewFormat = getOverlayFormatFromString(str_preview_format);
-    lcdev->previewBpp = getBppFromOverlayFormat(lcdev->previewFormat);
 
     if (window->set_usage(window, CAMHAL_GRALLOC_USAGE)) {
         LOGE("%s: could not set usage on gralloc buffer", __FUNCTION__);
         return -1;
     }
 
-    if (window->set_buffers_geometry(window, lcdev->previewWidth, lcdev->previewHeight, hal_pixel_format)) {
+    if (window->set_buffers_geometry(window,
+                                     lcdev->previewWidth,
+                                     lcdev->previewHeight,
+                                     HAL_PIXEL_FORMAT_RGB_565)) {
         LOGE("%s: could not set buffers geometry", __FUNCTION__);
         return -1;
     }
 
     lcdev->overlay = new Overlay(lcdev->previewWidth,
                                  lcdev->previewHeight,
-                                 lcdev->previewFormat,
+                                 OVERLAY_FORMAT_YUV422I,
                                  queue_buffer_hook,
                                  (void *) lcdev);
     lcdev->hwif->setOverlay(lcdev->overlay);
