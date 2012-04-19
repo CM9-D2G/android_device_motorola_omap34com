@@ -154,7 +154,9 @@ void Yuv422iToRgb565 (char* rgb, char* yuv422i, int width, int height, int strid
             if (g < 0) g = 0; else if (g > 262143) g = 262143;
             if (b < 0) b = 0; else if (b > 262143) b = 262143;
 
-            /* for RGB565 */
+            /* for RGB565
+             * TODO check endian ?
+             */
             r = (r >> 13) & 0x1f;
             g = (g >> 12) & 0x3f;
             b = (b >> 13) & 0x1f;
