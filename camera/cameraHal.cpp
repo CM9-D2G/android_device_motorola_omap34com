@@ -22,7 +22,6 @@
 #define LOG_TAG "CameraHAL"
 //#define LOG_NDEBUG 0
 #define LOG_FULL_PARAMS
-#define LOG_EACH_FRAMES
 
 //#define STORE_METADATA_IN_BUFFER
 
@@ -107,7 +106,8 @@ static inline void log_camera_params(const char* name,
 #endif
 }
 
-void Yuv422iToRgb565 (char* rgb, char* yuv422i, int width, int height) {
+void Yuv422iToRgb565 (char* rgb, char* yuv422i, int width, int height)
+{
     int yuv_index = 0;
     int rgb_index = 0;
     int j, i, y1192;
@@ -151,9 +151,7 @@ void Yuv422iToRgb565 (char* rgb, char* yuv422i, int width, int height) {
             if (g < 0) g = 0; else if (g > 262143) g = 262143;
             if (b < 0) b = 0; else if (b > 262143) b = 262143;
 
-            /* for RGB565
-             * TODO check endian ?
-             */
+            /* for RGB565 */
             r = (r >> 13) & 0x1f;
             g = (g >> 12) & 0x3f;
             b = (b >> 13) & 0x1f;
@@ -164,47 +162,41 @@ void Yuv422iToRgb565 (char* rgb, char* yuv422i, int width, int height) {
     }
 }
 
-void CameraHAL_ProcessPreviewData(char *frame, size_t size, legacy_camera_device *lcdev) {
-#ifdef LOG_EACH_FRAMES
-    LOGV("%s: frame=%p, size=%d, camera=%p", __FUNCTION__, frame, size, lcdev);
-#endif
-    if (NULL != lcdev->window) {
-        int32_t stride;
-        buffer_handle_t *bufHandle = NULL;
-        int retVal = lcdev->window->dequeue_buffer(lcdev->window, &bufHandle, &stride);
-        if (retVal != NO_ERROR) {
-            LOGE("%s: ERROR dequeueing the buffer\n", __FUNCTION__);
-            return;
-        }
-        retVal = lcdev->window->lock_buffer(lcdev->window, bufHandle);
-        if (retVal != NO_ERROR) {
-            LOGE("%s: ERROR locking the buffer\n", __FUNCTION__);
-            lcdev->window->cancel_buffer(lcdev->window, bufHandle);
-            return;
-        }
-        int tries = 5;
-        int err = 0;
-        void *vaddr;
-        err = lcdev->gralloc->lock(lcdev->gralloc, *bufHandle, CAMHAL_GRALLOC_USAGE,
-                                   0, 0, lcdev->previewWidth, lcdev->previewHeight, &vaddr);
-        while (err && tries) {
-            // Pano frames almost always need a retry... or not
-            LOGW("%s: gralloc lock retry", __FUNCTION__);
-            usleep(1000);
-            lcdev->gralloc->unlock(lcdev->gralloc, *bufHandle);
-            err = lcdev->gralloc->lock(lcdev->gralloc, *bufHandle, CAMHAL_GRALLOC_USAGE,
-                                       0, 0, lcdev->previewWidth, lcdev->previewHeight, &vaddr);
-            tries--;
-        }
-        if (err) {
-            return;
-        }
-        // The data we get is in YUV... but Window is RGBB565. It needs to be converted
-        Yuv422iToRgb565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight);
-        lcdev->gralloc->unlock(lcdev->gralloc, *bufHandle);
-        if (0 != lcdev->window->enqueue_buffer(lcdev->window, bufHandle)) {
-            LOGE("%s: could not enqueue gralloc buffer", __FUNCTION__);
-        }
+void CameraHAL_ProcessPreviewData(char *frame, size_t size,
+                                  legacy_camera_device *lcdev)
+{
+    int32_t stride;
+    buffer_handle_t *bufHandle = NULL;
+    void *vaddr;
+
+    if (lcdev->window == NULL)
+        return;
+
+    if (lcdev->window->dequeue_buffer(lcdev->window, &bufHandle,
+                                      &stride) != NO_ERROR) {
+        LOGE("%s: ERROR dequeueing the buffer\n", __FUNCTION__);
+        return;
+    }
+
+    if (lcdev->window->lock_buffer(lcdev->window, bufHandle) != NO_ERROR) {
+        LOGE("%s: ERROR locking the buffer\n", __FUNCTION__);
+        lcdev->window->cancel_buffer(lcdev->window, bufHandle);
+        return;
+    }
+
+    if (lcdev->gralloc->lock(lcdev->gralloc, *bufHandle, CAMHAL_GRALLOC_USAGE,
+                             0, 0, lcdev->previewWidth, lcdev->previewHeight,
+                             &vaddr) != NO_ERROR) {
+        return;
+    }
+
+    /* The data we get is in YUV... but Window is RGBB565. It needs to be converted */
+    Yuv422iToRgb565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight);
+    lcdev->gralloc->unlock(lcdev->gralloc, *bufHandle);
+
+    if (lcdev->window->enqueue_buffer(lcdev->window, bufHandle) != NO_ERROR) {
+        LOGE("%s: could not enqueue gralloc buffer", __FUNCTION__);
+        return;
     }
 }
 
@@ -245,6 +237,11 @@ void CameraHAL_DataCb(int32_t msg_type, const sp<IMemory>& dataPtr,
 
     if (!user)
         return;
+
+    if (msg_type ==CAMERA_MSG_RAW_IMAGE) {
+        lcdev->hwif->disableMsgType(CAMERA_MSG_RAW_IMAGE);
+        return;
+    }
 
     lcdev = (legacy_camera_device *) user;
     mem = CameraHAL_GenClientData(dataPtr, lcdev);
