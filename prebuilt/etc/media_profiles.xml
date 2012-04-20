@@ -38,7 +38,7 @@
 <!ATTLIST Audio sampleRate CDATA #REQUIRED>
 <!ATTLIST Audio channels (1|2) #REQUIRED>
 <!ELEMENT ImageEncoding EMPTY>
-<!ATTLIST ImageEncoding quality (95|80|70|60|50|40) #REQUIRED>
+<!ATTLIST ImageEncoding quality (95|90|80|70) #REQUIRED>
 <!ELEMENT ImageDecoding EMPTY>
 <!ATTLIST ImageDecoding memCap CDATA #REQUIRED>
 <!ELEMENT Camera EMPTY>
@@ -120,8 +120,8 @@
         </EncoderProfile>
 
         <ImageEncoding quality="95" />
+        <ImageEncoding quality="90" />
         <ImageEncoding quality="80" />
-        <ImageEncoding quality="70" />
         <ImageDecoding memCap="20000000" />
 
         <Camera previewFrameRate="24" />
@@ -172,25 +172,6 @@
         for TEST applications. For other applications, we do
         not perform any checks at all.
     -->
-    <VideoDecoderCap name="wmv" enabled="false"/>
-    <AudioDecoderCap name="wma" enabled="false"/>
-    <VideoEditorCap  maxInputFrameWidth="1280"
-        maxInputFrameHeight="720" maxOutputFrameWidth="1280"
-        maxOutputFrameHeight="720" maxPrefetchYUVFrames="10"/>
-    <!--
-        The VideoEditor Export codec profile and level values
-        correspond to the values in OMX_Video.h.
-        E.g. for h264, profile value 1 means OMX_VIDEO_AVCProfileBaseline
-        and  level 4096 means OMX_VIDEO_AVCLevel41.
-        Please note that the values are in decimal.
-        These values are for video encoder.
-    -->
-
-    <!-- Codec = h.264, Baseline profile, level 4.1 -->
-    <ExportVideoProfile name="h264" profile= "1" level="4096"/>
-
-    <!-- Codec = h.263, Baseline profile, level 0 -->
-    <ExportVideoProfile name="h263" profile= "1" level="1"/>
-    <!-- Codec = mpeg4, Simple profile, level 3 -->
-    <ExportVideoProfile name="m4v" profile= "1" level="16"/>
+    <VideoDecoderCap name="wmv" enabled="true"/>
+    <AudioDecoderCap name="wma" enabled="true"/>
 </MediaSettings>
