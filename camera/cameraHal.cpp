@@ -32,6 +32,7 @@
 #include <hardware/gralloc.h>
 #include <utils/Errors.h>
 #include <vector>
+#include <ctype.h>
 
 #define CAMHAL_GRALLOC_USAGE GRALLOC_USAGE_HW_TEXTURE | \
 			     GRALLOC_USAGE_HW_RENDER | \
@@ -354,11 +355,21 @@ void CameraHAL_FixupParams(struct camera_device *device,
 
     /* ISO */
     settings.set("iso", "auto");
-    if (!settings.get("iso-values")) {
-        const char *moto_iso_values = settings.get("mot-picture-iso-values");
-        if (moto_iso_values)
-            settings.set("iso-values", moto_iso_values);
+    char *moto_iso_values = strdup(settings.get("mot-picture-iso-values"));
+    char iso_values[256];
+    if ((!settings.get("iso-values") && moto_iso_values)) {
+        char *iso = strtok(moto_iso_values, ",");
+        while (iso != NULL) {
+            strcat(iso_values, ",");
+            if (isdigit(iso[0]))
+                strcat(iso_values, "ISO");
+
+            strcat(iso_values, iso);
+            iso = strtok(NULL, " ,");
+        }
     }
+    settings.set("iso-values", iso_values);
+    free(moto_iso_values);
 
     /* defy: required to prevent panorama crash, but require also opengl ui */
     const char *fps_range_values = "(1000,30000),(1000,25000),(1000,20000),"
