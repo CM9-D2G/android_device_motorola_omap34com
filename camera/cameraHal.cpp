@@ -379,36 +379,6 @@ void CameraHAL_FixupParams(struct camera_device *device,
     if (!settings.get(android::CameraParameters::KEY_PREVIEW_FPS_RANGE))
         settings.set(android::CameraParameters::KEY_PREVIEW_FPS_RANGE, preview_fps_range);
 
-    // Fix preview ratio (for wide picture and video formats)
-    // should be fixed in camera app... ratio defines, to allow small sizes (panorama)
-
-/*    const char *target_size = settings.get("picture-size");
-    float ratio = 0.0;
-    int height = 0, width = atoi(target_size);
-    char *sh;
-    bool need_reset = false;
-    if (width > 0) {
-        sh = strstr(target_size, "x");
-        height = atoi(sh + 1);
-        ratio = (height * 1.0) / width;
-        if (ratio < 0.70 && width >= 640) {
-            settings.setPreviewSize(848, 480);
-            settings.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO, "848x480");
-            need_reset = true;
-        } else if (width == 848) {
-            settings.setPreviewSize(640, 480);
-            settings.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO, "640x480");
-            need_reset = true;
-        }
-        LOGV("%s: target size %s, ratio %f", __FUNCTION__, target_size, ratio);
-    }
-
-    if (need_reset) {
-        legacy_camera_device *lcdev = (legacy_camera_device*) device;
-        camera_set_preview_window(device, lcdev->window);
-    }
-*/
-
     LOGD("Parameters fixed up");
 }
 
