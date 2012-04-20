@@ -354,6 +354,7 @@ void CameraHAL_FixupParams(struct camera_device *device,
     settings.set("iso", "auto");
     char *moto_iso_values = strdup(settings.get("mot-picture-iso-values"));
     char iso_values[256];
+    memset(iso_values, '\0', sizeof(iso_values));
     if ((!settings.get("iso-values") && moto_iso_values)) {
         char *iso = strtok(moto_iso_values, ",");
         while (iso != NULL) {
