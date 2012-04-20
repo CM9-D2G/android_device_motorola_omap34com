@@ -382,67 +382,41 @@ void CameraHAL_FixupParams(struct camera_device *device,
     LOGD("Parameters fixed up");
 }
 
-inline void destroyOverlay(legacy_camera_device *lcdev)
-{
-    LOGV("%s\n", __FUNCTION__);
-    if (lcdev->overlay != NULL && lcdev->hwif != NULL) {
-        lcdev->hwif->setOverlay(false);
-        lcdev->overlay = NULL;
-    }
-}
-
 /* Hardware Camera interface handlers. */
 int camera_set_preview_window(struct camera_device *device,
                               struct preview_stream_ops *window)
 {
     int rv = -EINVAL;
+    int min_bufs = -1;
     const int kBufferCount = 4;
     legacy_camera_device *lcdev = NULL;
 
-    LOGV("%s: Window %p\n", __FUNCTION__, window);
-    if (!device) {
-        LOGE("%s: Invalid device.\n", __FUNCTION__);
-        return -EINVAL;
-    }
-    lcdev = (legacy_camera_device*) device;
+    if (!device)
+        return rv;
 
-    if (lcdev->window == window) {
-        LOGV("%s: reconfiguring window %p", __FUNCTION__, window);
-        destroyOverlay(lcdev);
-    }
+    lcdev = (legacy_camera_device*) device;
     lcdev->window = window;
 
     if (!window) {
-        // It means we need to release old window
-        LOGV("%s: releasing previous window", __FUNCTION__);
-        destroyOverlay(lcdev);
+        LOGV("%s: window is NULL", __FUNCTION__);
         return NO_ERROR;
     }
 
-    LOGD("%s: OK window is %p", __FUNCTION__, window);
-
     if (!lcdev->gralloc) {
-        hw_module_t const* module;
-        int err = 0;
-        if (hw_get_module(GRALLOC_HARDWARE_MODULE_ID, &module) == 0) {
-            lcdev->gralloc = (const gralloc_module_t *)module;
-            LOGD("%s: loaded gralloc, module name=%s; author=%s", __FUNCTION__, module->name, module->author);
-        } else {
+        if (hw_get_module(GRALLOC_HARDWARE_MODULE_ID,
+                          (const hw_module_t **)&(lcdev->gralloc))) {
             LOGE("%s: Fail on loading gralloc HAL", __FUNCTION__);
         }
     }
 
-    LOGD("%s: OK on loading gralloc HAL", __FUNCTION__);
-    int min_bufs = -1;
     if (window->get_min_undequeued_buffer_count(window, &min_bufs)) {
         LOGE("%s: could not retrieve min undequeued buffer count", __FUNCTION__);
         return -1;
     }
-    LOGD("%s: OK get_min_undequeued_buffer_count", __FUNCTION__);
 
-    LOGD("%s: minimum buffer count is %i", __FUNCTION__, min_bufs);
     if (min_bufs >= kBufferCount) {
-        LOGE("%s: min undequeued buffer count %i is too high (expecting at most %i)", __FUNCTION__, min_bufs, kBufferCount - 1);
+        LOGE("%s: min undequeued buffer count %i is too high"
+             " (expecting at most %i)", __FUNCTION__, min_bufs, kBufferCount - 1);
     }
 
     LOGD("%s: setting buffer count to %i", __FUNCTION__, kBufferCount);
@@ -453,7 +427,6 @@ int camera_set_preview_window(struct camera_device *device,
 
     CameraParameters params(lcdev->hwif->getParameters());
     params.getPreviewSize(&lcdev->previewWidth, &lcdev->previewHeight);
-
     const char *str_preview_format = params.getPreviewFormat();
 
     if (window->set_usage(window, CAMHAL_GRALLOC_USAGE)) {
