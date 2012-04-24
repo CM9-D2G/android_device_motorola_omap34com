@@ -718,6 +718,7 @@ void camera_release(struct camera_device *device)
     if (!device)
         return;
 
+    lcdev = (legacy_camera_device*) device;
     lcdev->hwif->release();
 }
 
