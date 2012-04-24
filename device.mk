@@ -126,6 +126,7 @@ PRODUCT_COPY_FILES += \
 # Prebuilts
 PRODUCT_COPY_FILES += \
 	$(DEVICE_PREBUILT)/bin/mount_ext3.sh:system/bin/mount_ext3.sh \
+	$(DEVICE_PREBUILT)/bin/sysinit:system/bin/sysinit \
 	$(DEVICE_PREBUILT)/bin/adbd:system/bin/adbd \
 	$(DEVICE_PREBUILT)/etc/apns-conf.xml:system/etc/apns-conf.xml \
 	$(DEVICE_PREBUILT)/etc/egl.cfg:system/etc/egl.cfg \
