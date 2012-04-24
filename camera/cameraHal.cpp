@@ -104,7 +104,7 @@ static inline void log_camera_params(const char* name,
 #endif
 }
 
-void Yuv422iToRgb565 (char* rgb, char* yuv422i, int width, int height)
+inline void Yuv422iToRgb565 (char* rgb, char* yuv422i, int width, int height)
 {
     int yuv_index = 0;
     int rgb_index = 0;
