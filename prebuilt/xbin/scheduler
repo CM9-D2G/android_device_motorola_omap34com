@@ -1,0 +1,39 @@
+#!/system/xbin/bash
+
+usage() {
+    echo "usage: scheduler (desired scheduler)"
+    echo ""
+    echo "    Allowed values are 'noop' 'cfq' and 'sio'"
+    echo "    Default value is 'noop'"
+    echo "    example: scheduler sio"
+}
+
+save_setting() {
+    local new_sched_val=$1
+
+    echo "Remounting /system rw"
+    mount -o remount,rw /system > /dev/null 2>&1
+
+    echo "Storing our setting for next startup"
+    sed -i 's/SCHED=.*/SCHED='$new_sched_val/ /system/etc/init.d/12scheduler
+
+    echo "Remounting /system ro"
+    mount -o remount,ro /system > /dev/null 2>&1
+
+    if [ $new_sched_val = "sio" ]; then
+        echo 'sio' > /sys/block/mmcblk0/queue/scheduler
+        echo 'sio' > /sys/block/mmcblk1/queue/scheduler
+    elif [ $new_sched_val = "cfq" ]; then
+        echo 'cfq' > /sys/block/mmcblk0/queue/scheduler
+        echo 'cfq' > /sys/block/mmcblk1/queue/scheduler
+      elif [ $new_sched_val = "noop" ]; then
+          echo 'noop' > /sys/block/mmcblk0/queue/scheduler
+          echo 'noop' > /sys/block/mmcblk1/queue/scheduler
+    echo "Kernel I/O Scheduler set to $new_sched_val"
+    else
+      echo "Invalid option, valid options are 'noop', 'cfq' and 'sio'"
+    fi
+}
+
+new_sched_val=$1
+save_setting $new_sched_val
