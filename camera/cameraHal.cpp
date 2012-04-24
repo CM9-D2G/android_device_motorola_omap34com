@@ -23,8 +23,6 @@
 //#define LOG_NDEBUG 0
 #define LOG_FULL_PARAMS
 
-//#define STORE_METADATA_IN_BUFFER
-
 #include <hardware/camera.h>
 #include <ui/Overlay.h>
 #include <binder/IMemory.h>
@@ -238,7 +236,7 @@ void CameraHAL_DataCb(int32_t msg_type, const sp<IMemory>& dataPtr,
     if (!user)
         return;
 
-    if (msg_type ==CAMERA_MSG_RAW_IMAGE) {
+    if (msg_type == CAMERA_MSG_RAW_IMAGE) {
         lcdev->hwif->disableMsgType(CAMERA_MSG_RAW_IMAGE);
         return;
     }
@@ -547,18 +545,14 @@ int camera_preview_enabled(struct camera_device *device)
 int camera_store_meta_data_in_buffers(struct camera_device *device, int enable)
 {
     int rv = -EINVAL;
-#ifdef STORE_METADATA_IN_BUFFER
     legacy_camera_device *lcdev = NULL;
 
     if (!device)
         return rv;
 
     lcdev = (legacy_camera_device*) device;
-    return ret = lcdev->hwif->storeMetaDataInBuffers(enable);
-#else
-    LOGW("camera_store_meta_data_in_buffers:\n");
+//    return ret = lcdev->hwif->storeMetaDataInBuffers(enable);
     return rv;
-#endif
 }
 
 int camera_start_recording(struct camera_device *device)
@@ -605,8 +599,8 @@ void camera_release_recording_frame(struct camera_device *device,
     if (!device)
         return;
 
-    /* TODO Implement */
     lcdev = (legacy_camera_device*) device;
+//    lcdev->hwif->releaseRecordingFrame(opaque);
     return;
 }
 
@@ -663,31 +657,39 @@ int camera_set_parameters(struct camera_device *device,
 {
     int rv = -EINVAL;
     legacy_camera_device *lcdev = NULL;
+    CameraParameters camParams;
 
-    if (!device || !params)
+    if (!device)
         return rv;
 
-    String8 s(params);
-    CameraParameters p(s);
-    log_camera_params(__FUNCTION__, p);
-
     lcdev = (legacy_camera_device*) device;
-    return lcdev->hwif->setParameters(p);
+    String8 params_str8(params);
+    camParams.unflatten(params_str8);
+
+    return lcdev->hwif->setParameters(camParams);
 }
 
 char *camera_get_parameters(struct camera_device *device)
 {
+    char *params = NULL;
     legacy_camera_device *lcdev = NULL;
+    String8 params_str8;
+    CameraParameters camParams;
 
     if (!device)
         return NULL;
 
     lcdev = (legacy_camera_device*) device;
-    CameraParameters params(lcdev->hwif->getParameters());
-    CameraHAL_FixupParams(device, params);
+    camParams = lcdev->hwif->getParameters();
+
+    CameraHAL_FixupParams(device, camParams);
     log_camera_params(__FUNCTION__, params);
 
-    return strdup((char *)params.flatten().string());
+    params_str8 = camParams.flatten();
+    params = (char*)malloc(sizeof(char) *(params_str8.length() + 1));
+    strcpy(params, params_str8.string());
+
+    return params;
 }
 
 void camera_put_parameters(struct camera_device *device, char *params)
