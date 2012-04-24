@@ -800,7 +800,6 @@ int camera_device_open(const hw_module_t* module, const char *name,
     camera_ops->cancel_auto_focus          = camera_cancel_auto_focus;
     camera_ops->take_picture               = camera_take_picture;
     camera_ops->cancel_picture             = camera_cancel_picture;
-
     camera_ops->set_parameters             = camera_set_parameters;
     camera_ops->get_parameters             = camera_get_parameters;
     camera_ops->put_parameters             = camera_put_parameters;
@@ -810,16 +809,26 @@ int camera_device_open(const hw_module_t* module, const char *name,
 
     lcdev->id = cameraId;
     lcdev->hwif = HAL_openCameraHardware(cameraId);
+    *device = &lcdev->device.common;
+
     if (lcdev->hwif == NULL) {
          ret = -EIO;
          goto err_create_camera_hw;
     }
-    *device = &lcdev->device.common;
-    return NO_ERROR;
+
+    return ret;
 
 err_create_camera_hw:
-    free(lcdev);
-    free(camera_ops);
+    if (lcdev) {
+        free(lcdev);
+        lcdev = NULL;
+    }
+    if (camera_ops) {
+        free(camera_ops);
+        camera_ops = NULL;
+    }
+    *device = NULL;
+
     return ret;
 }
 
