@@ -687,7 +687,7 @@ char *camera_get_parameters(struct camera_device *device)
     camParams = lcdev->hwif->getParameters();
 
     CameraHAL_FixupParams(device, camParams);
-    log_camera_params(__FUNCTION__, params);
+    log_camera_params(__FUNCTION__, camParams);
 
     params_str8 = camParams.flatten();
     params = (char*)malloc(sizeof(char) *(params_str8.length() + 1));
