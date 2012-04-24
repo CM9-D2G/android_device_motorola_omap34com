@@ -289,7 +289,6 @@ void CameraHAL_NotifyCb(int32_t msg_type, int32_t ext1, int32_t ext2, void *user
 int CameraHAL_GetCam_Info(int camera_id, struct camera_info *info)
 {
     int rv = 0;
-    LOGV("CameraHAL_GetCam_Info()");
 
     CameraInfo cam_info;
     HAL_getCameraInfo(camera_id, &cam_info);
@@ -724,16 +723,8 @@ void camera_release(struct camera_device *device)
 
 int camera_dump(struct camera_device *device, int fd)
 {
-    int rv = -EINVAL;
-    Vector<String16> args;
-    legacy_camera_device *lcdev = NULL;
-
-    if (!device)
-        return rv;
-
-
-    lcdev = (legacy_camera_device*) device;
-//    return lcdev->hwif->dump(fd, args);
+    int rv = NO_ERROR;
+    LOGD("camera_dump");
     return rv;
 }
 
