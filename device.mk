@@ -73,6 +73,10 @@ PRODUCT_PACKAGES += \
 	libCustomWifi \
 	wlan_loader
 
+# Bluetooth configuration files
+PRODUCT_COPY_FILES += \
+	system/bluetooth/data/main.conf:system/etc/bluetooth/main.conf
+
 # Apps and bin
 PRODUCT_PACKAGES += \
 	Superuser \
