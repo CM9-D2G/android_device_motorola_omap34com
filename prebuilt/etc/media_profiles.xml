@@ -82,7 +82,7 @@
 
         <EncoderProfile quality="480p" fileFormat="mp4" duration="30">
             <Video codec="h264"
-                   bitRate="3500000"
+                   bitRate="4000000"
                    width="720"
                    height="480"
                    frameRate="20" />
@@ -94,7 +94,7 @@
 
         <EncoderProfile quality="high" fileFormat="mp4" duration="30">
             <Video codec="h264"
-                   bitRate="3000000"
+                   bitRate="3500000"
                    width="640"
                    height="480"
                    frameRate="20" />
@@ -139,7 +139,7 @@
         minFrameRate="1" maxFrameRate="30" />
 
     <VideoEncoderCap name="h263" enabled="true"
-        minBitRate="64000" maxBitRate="4000000"
+        minBitRate="64000" maxBitRate="8000000"
         minFrameWidth="176" maxFrameWidth="1280"
         minFrameHeight="144" maxFrameHeight="720"
         minFrameRate="1" maxFrameRate="30" />
