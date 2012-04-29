@@ -311,7 +311,7 @@ void CameraHAL_FixupParams(struct camera_device *device,
 
     settings.setPreviewFormat(CameraParameters::PIXEL_FORMAT_YUV422I);
 
-    settings.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO, "640x480");
+    settings.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO, "848x480");
 
     if (!settings.get("preview-size-values"))
         settings.set("preview-size-values", "176x144,320x240,352x288,480x360,640x480,848x480");
