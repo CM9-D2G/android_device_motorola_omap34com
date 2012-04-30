@@ -104,7 +104,7 @@ static inline void log_camera_params(const char* name,
 #endif
 }
 
-inline void Yuv422iToRgb565 (char* rgb, char* yuv422i, int width, int height)
+inline void YUYVtoRGB565(char* rgb, char* yuv422i, int width, int height)
 {
     int yuv_index = 0;
     int rgb_index = 0;
@@ -188,8 +188,7 @@ void CameraHAL_ProcessPreviewData(char *frame, size_t size,
         return;
     }
 
-    /* The data we get is in YUV... but Window is RGBB565. It needs to be converted */
-    Yuv422iToRgb565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight);
+    YUYVtoRGB565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight);
     lcdev->gralloc->unlock(lcdev->gralloc, *bufHandle);
 
     if (lcdev->window->enqueue_buffer(lcdev->window, bufHandle) != NO_ERROR) {
