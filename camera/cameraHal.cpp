@@ -107,55 +107,53 @@ static inline void log_camera_params(const char* name,
 inline void YUYVtoRGB565(unsigned char *rgb, unsigned char* yuyv,
                          int width, int height)
 {
-    int yuv_index = 0;
-    int rgb_index = 0;
-    int j, i, y1192;
+    int i, y1192;
     int y1, u, y2, v;
     int r, g, b;
+    int blocks;
 
-    for (j = 0; j < height; j++) {
-        for (i = 0; i < width / 2; i++) {
+    blocks = (width * height) * 2;
+    for (i = 0; i < blocks; i += 4) {
 
-            y1 = (0xff & yuyv[yuv_index++]) - 16;
-            u  = (0xff & yuyv[yuv_index++]) - 128;
-            y2 = (0xff & yuyv[yuv_index++]) - 16;
-            v  = (0xff & yuyv[yuv_index++]) - 128;
+        y1 = (0xff & yuyv[i + 0]) - 16;
+        u  = (0xff & yuyv[i + 1]) - 128;
+        y2 = (0xff & yuyv[i + 2]) - 16;
+        v  = (0xff & yuyv[i + 3]) - 128;
 
-            if (y1 < 0) y1 = 0;
-            if (y2 < 0) y2 = 0;
+        if (y1 < 0) y1 = 0;
+        if (y2 < 0) y2 = 0;
 
-            y1192 = 1192 * y1;
-            r = (y1192 + 1634 * v);
-            g = (y1192 - 833 * v - 400 * u);
-            b = (y1192 + 2066 * u);
+        y1192 = 1192 * y1;
+        r = (y1192 + 1634 * v);
+        g = (y1192 - 833 * v - 400 * u);
+        b = (y1192 + 2066 * u);
 
-            if (r < 0) r = 0; else if (r > 262143) r = 262143;
-            if (g < 0) g = 0; else if (g > 262143) g = 262143;
-            if (b < 0) b = 0; else if (b > 262143) b = 262143;
+        if (r < 0) r = 0; else if (r > 262143) r = 262143;
+        if (g < 0) g = 0; else if (g > 262143) g = 262143;
+        if (b < 0) b = 0; else if (b > 262143) b = 262143;
 
-            r = (r >> 13) & 0x1f;
-            g = (g >> 12) & 0x3f;
-            b = (b >> 13) & 0x1f;
+        r = (r >> 13) & 0x1f;
+        g = (g >> 12) & 0x3f;
+        b = (b >> 13) & 0x1f;
 
-            rgb[rgb_index++] = g << 5 | b;
-            rgb[rgb_index++] = r << 3 | g >> 3;
+        rgb[i + 0] = (g << 5 | b);
+        rgb[i + 1] = (r << 3 | g >> 3);
 
-            y1192 = 1192 * y2;
-            r = (y1192 + 1634 * v);
-            g = (y1192 - 833 * v - 400 * u);
-            b = (y1192 + 2066 * u);
+        y1192 = 1192 * y2;
+        r = (y1192 + 1634 * v);
+        g = (y1192 - 833 * v - 400 * u);
+        b = (y1192 + 2066 * u);
 
-            if (r < 0) r = 0; else if (r > 262143) r = 262143;
-            if (g < 0) g = 0; else if (g > 262143) g = 262143;
-            if (b < 0) b = 0; else if (b > 262143) b = 262143;
+        if (r < 0) r = 0; else if (r > 262143) r = 262143;
+        if (g < 0) g = 0; else if (g > 262143) g = 262143;
+        if (b < 0) b = 0; else if (b > 262143) b = 262143;
 
-            r = (r >> 13) & 0x1f;
-            g = (g >> 12) & 0x3f;
-            b = (b >> 13) & 0x1f;
+        r = (r >> 13) & 0x1f;
+        g = (g >> 12) & 0x3f;
+        b = (b >> 13) & 0x1f;
 
-            rgb[rgb_index++] = g << 5 | b;
-            rgb[rgb_index++] = r << 3 | g >> 3;
-        }
+        rgb[i + 2] = (g << 5 | b);
+        rgb[i + 3] = (r << 3 | g >> 3);
     }
 }
 
