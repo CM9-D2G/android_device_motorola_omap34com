@@ -31,6 +31,7 @@
 #include <vector>
 #include <ctype.h>
 
+#define CLAMP(x, l, h)  (((x) > (h)) ? (h) : (((x) < (l)) ? (l) : (x)))
 #define CAMHAL_GRALLOC_USAGE GRALLOC_USAGE_HW_TEXTURE | \
 			     GRALLOC_USAGE_HW_RENDER | \
 			     GRALLOC_USAGE_SW_READ_RARELY | \
@@ -124,13 +125,9 @@ inline void YUYVtoRGB565(unsigned char *rgb, unsigned char* yuyv,
         if (y2 < 0) y2 = 0;
 
         y1192 = 1192 * y1;
-        r = (y1192 + 1634 * v);
-        g = (y1192 - 833 * v - 400 * u);
-        b = (y1192 + 2066 * u);
-
-        if (r < 0) r = 0; else if (r > 262143) r = 262143;
-        if (g < 0) g = 0; else if (g > 262143) g = 262143;
-        if (b < 0) b = 0; else if (b > 262143) b = 262143;
+        r = CLAMP((y1192 + 1634 * v), 0, 262143);
+        g = CLAMP((y1192 - 833 * v - 400 * u), 0, 262143);
+        b = CLAMP((y1192 + 2066 * u), 0, 262143);
 
         r = (r >> 13) & 0x1f;
         g = (g >> 12) & 0x3f;
@@ -140,13 +137,9 @@ inline void YUYVtoRGB565(unsigned char *rgb, unsigned char* yuyv,
         rgb[i + 1] = (r << 3 | g >> 3);
 
         y1192 = 1192 * y2;
-        r = (y1192 + 1634 * v);
-        g = (y1192 - 833 * v - 400 * u);
-        b = (y1192 + 2066 * u);
-
-        if (r < 0) r = 0; else if (r > 262143) r = 262143;
-        if (g < 0) g = 0; else if (g > 262143) g = 262143;
-        if (b < 0) b = 0; else if (b > 262143) b = 262143;
+        r = CLAMP((y1192 + 1634 * v), 0, 262143);
+        g = CLAMP((y1192 - 833 * v - 400 * u), 0, 262143);
+        b = CLAMP((y1192 + 2066 * u), 0, 262143);
 
         r = (r >> 13) & 0x1f;
         g = (g >> 12) & 0x3f;
