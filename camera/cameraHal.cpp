@@ -104,7 +104,8 @@ static inline void log_camera_params(const char* name,
 #endif
 }
 
-inline void YUYVtoRGB565(char* rgb, char* yuv422i, int width, int height)
+inline void YUYVtoRGB565(unsigned char *rgb, unsigned char* yuyv,
+                         int width, int height)
 {
     int yuv_index = 0;
     int rgb_index = 0;
@@ -115,10 +116,10 @@ inline void YUYVtoRGB565(char* rgb, char* yuv422i, int width, int height)
     for (j = 0; j < height; j++) {
         for (i = 0; i < width / 2; i++) {
 
-            y1 = (0xff & yuv422i[yuv_index++]) - 16;
-            u  = (0xff & yuv422i[yuv_index++]) - 128;
-            y2 = (0xff & yuv422i[yuv_index++]) - 16;
-            v  = (0xff & yuv422i[yuv_index++]) - 128;
+            y1 = (0xff & yuyv[yuv_index++]) - 16;
+            u  = (0xff & yuyv[yuv_index++]) - 128;
+            y2 = (0xff & yuyv[yuv_index++]) - 16;
+            v  = (0xff & yuyv[yuv_index++]) - 128;
 
             if (y1 < 0) y1 = 0;
             if (y2 < 0) y2 = 0;
@@ -132,7 +133,6 @@ inline void YUYVtoRGB565(char* rgb, char* yuv422i, int width, int height)
             if (g < 0) g = 0; else if (g > 262143) g = 262143;
             if (b < 0) b = 0; else if (b > 262143) b = 262143;
 
-            /* for RGB565 */
             r = (r >> 13) & 0x1f;
             g = (g >> 12) & 0x3f;
             b = (b >> 13) & 0x1f;
@@ -149,7 +149,6 @@ inline void YUYVtoRGB565(char* rgb, char* yuv422i, int width, int height)
             if (g < 0) g = 0; else if (g > 262143) g = 262143;
             if (b < 0) b = 0; else if (b > 262143) b = 262143;
 
-            /* for RGB565 */
             r = (r >> 13) & 0x1f;
             g = (g >> 12) & 0x3f;
             b = (b >> 13) & 0x1f;
@@ -160,49 +159,53 @@ inline void YUYVtoRGB565(char* rgb, char* yuv422i, int width, int height)
     }
 }
 
-void CameraHAL_ProcessPreviewData(char *frame, size_t size,
-                                  legacy_camera_device *lcdev)
+/* Overlay hooks */
+void queue_buffer_hook(void *data, void *buffer, size_t size)
 {
-    int32_t stride;
     buffer_handle_t *bufHandle = NULL;
+    legacy_camera_device *lcdev = NULL;
+    preview_stream_ops *window = NULL;
+    unsigned char *yuyv = NULL;
+    unsigned char *rgb  = NULL;
+    int32_t stride;
     void *vaddr;
+    int ret;
 
+    if (!data)
+        return;
+
+    lcdev = (legacy_camera_device *) data;
     if (lcdev->window == NULL)
         return;
 
-    if (lcdev->window->dequeue_buffer(lcdev->window, &bufHandle,
-                                      &stride) != NO_ERROR) {
+    window = lcdev->window;
+    ret = window->dequeue_buffer(window, &bufHandle, &stride);
+    if (ret != NO_ERROR) {
         LOGE("%s: ERROR dequeueing the buffer\n", __FUNCTION__);
         return;
     }
 
-    if (lcdev->window->lock_buffer(lcdev->window, bufHandle) != NO_ERROR) {
+    ret = window->lock_buffer(window, bufHandle);
+    if (ret != NO_ERROR) {
         LOGE("%s: ERROR locking the buffer\n", __FUNCTION__);
-        lcdev->window->cancel_buffer(lcdev->window, bufHandle);
+        window->cancel_buffer(window, bufHandle);
         return;
     }
 
-    if (lcdev->gralloc->lock(lcdev->gralloc, *bufHandle, CAMHAL_GRALLOC_USAGE,
+    ret = lcdev->gralloc->lock(lcdev->gralloc, *bufHandle, CAMHAL_GRALLOC_USAGE,
                              0, 0, lcdev->previewWidth, lcdev->previewHeight,
-                             &vaddr) != NO_ERROR) {
+                             &vaddr);
+    if (ret != NO_ERROR)
         return;
-    }
 
-    YUYVtoRGB565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight);
+    yuyv = (unsigned char *) buffer;
+    rgb  = (unsigned char *) vaddr;
+    YUYVtoRGB565(rgb, yuyv, lcdev->previewWidth, lcdev->previewHeight);
     lcdev->gralloc->unlock(lcdev->gralloc, *bufHandle);
 
-    if (lcdev->window->enqueue_buffer(lcdev->window, bufHandle) != NO_ERROR) {
+    ret = window->enqueue_buffer(window, bufHandle);
+    if (ret != NO_ERROR)
         LOGE("%s: could not enqueue gralloc buffer", __FUNCTION__);
-        return;
-    }
-}
-
-/* Overlay hooks */
-void queue_buffer_hook(void *data, void *buffer, size_t size)
-{
-    if (data != NULL && buffer != NULL) {
-        CameraHAL_ProcessPreviewData((char*)buffer, size, (legacy_camera_device*) data);
-    }
 }
 
 camera_memory_t* CameraHAL_GenClientData(const sp<IMemory> &dataPtr,
