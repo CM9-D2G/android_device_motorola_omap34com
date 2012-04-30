@@ -221,7 +221,8 @@ camera_memory_t* CameraHAL_GenClientData(const sp<IMemory> &dataPtr,
     data = (void *)((char *)(mHeap->base()) + offset);
 
     clientData = lcdev->request_memory(-1, size, 1, lcdev->user);
-    memcpy(clientData->data, data, size);
+    if (clientData && size > 0)
+        memcpy(clientData->data, data, size);
 
     return clientData;
 }
