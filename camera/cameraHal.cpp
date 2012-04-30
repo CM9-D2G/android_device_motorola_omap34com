@@ -244,7 +244,7 @@ void CameraHAL_DataCb(int32_t msg_type, const sp<IMemory>& dataPtr,
     lcdev = (legacy_camera_device *) user;
     mem = CameraHAL_GenClientData(dataPtr, lcdev);
 
-    if (lcdev->data_callback)
+    if (lcdev->data_callback && mem)
         lcdev->data_callback(msg_type, mem, 0, NULL, lcdev->user);
 }
 
