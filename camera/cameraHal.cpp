@@ -583,7 +583,6 @@ void camera_stop_recording(struct camera_device *device)
 
     lcdev = (legacy_camera_device*) device;
     lcdev->hwif->stopRecording();
-    lcdev->hwif->startPreview();
 }
 
 int camera_recording_enabled(struct camera_device *device)
