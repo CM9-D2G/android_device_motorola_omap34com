@@ -486,6 +486,11 @@ void camera_enable_msg_type(struct camera_device *device, int32_t msg_type)
     if (!device)
         return;
 
+    if (msg_type & CAMERA_MSG_RAW_IMAGE_NOTIFY) {
+        msg_type &= ~CAMERA_MSG_RAW_IMAGE_NOTIFY;
+        msg_type |= CAMERA_MSG_RAW_IMAGE;
+    }
+
     lcdev = (legacy_camera_device*) device;
     lcdev->hwif->enableMsgType(msg_type);
 }
