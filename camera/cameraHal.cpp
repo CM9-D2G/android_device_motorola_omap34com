@@ -260,7 +260,7 @@ void CameraHAL_DataTSCb(nsecs_t timestamp, int32_t msg_type,
     lcdev = (legacy_camera_device *) user;
     mem = CameraHAL_GenClientData(dataPtr, lcdev);
 
-    if (lcdev->data_timestamp_callback)
+    if (lcdev->data_timestamp_callback && mem)
         lcdev->data_timestamp_callback(timestamp, msg_type, mem, 0, lcdev->user);
 
     lcdev->hwif->releaseRecordingFrame(dataPtr);
