@@ -113,7 +113,7 @@ inline void YUYVtoRGB565(unsigned char *rgb, unsigned char* yuyv,
     int r, g, b;
     int blocks;
 
-    blocks = (width * height) * 2;
+    blocks = height * (width / 2);
     for (i = 0; i < blocks; i += 4) {
 
         y1 = (0xff & yuyv[i + 0]) - 16;
