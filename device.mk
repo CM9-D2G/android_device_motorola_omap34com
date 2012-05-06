@@ -50,7 +50,6 @@ PRODUCT_PACKAGES += libGLESv2 libEGL libGLESv1_CM
 
 # for jpeg hw encoder/decoder
 PRODUCT_PACKAGES += \
-	libskiahw \
 	libOMX.TI.JPEG.Encoder \
 	libOMX.TI.JPEG.decoder \
 	libstagefrighthw
