@@ -108,45 +108,43 @@ static inline void log_camera_params(const char* name,
 inline void YUYVtoRGB565(unsigned char *rgb, unsigned char* yuyv,
                          int width, int height)
 {
-    int i, y1192;
+    int row, pos;
+    int yuvIndex = 0;
+    int rgbIndex = 0;
     int y1, u, y2, v;
     int r, g, b;
-    int blocks;
+    int yy1, yy2, uv, uu, vv;
 
-    blocks = height * (width / 2);
-    for (i = 0; i < blocks; i += 4) {
+    for (row = 0; row < height; row++) {
+        for (pos = 0; pos < width / 2; pos++) {
+            y1 = (0xff & yuyv[yuvIndex++]) - 16;
+            u  = (0xff & yuyv[yuvIndex++]) - 128;
+            y2 = (0xff & yuyv[yuvIndex++]) - 16;
+            v  = (0xff & yuyv[yuvIndex++]) - 128;
 
-        y1 = (0xff & yuyv[i + 0]) - 16;
-        u  = (0xff & yuyv[i + 1]) - 128;
-        y2 = (0xff & yuyv[i + 2]) - 16;
-        v  = (0xff & yuyv[i + 3]) - 128;
+            if (y1 < 0) y1 = 0;
+            if (y2 < 0) y2 = 0;
 
-        if (y1 < 0) y1 = 0;
-        if (y2 < 0) y2 = 0;
+            yy1 = 1192 * y1;
+            yy2 = 1192 * y2;
+            uv = 833 * v + 400 * u;
+            uu = 2066 * u;
+            vv = 1634 * v;
 
-        y1192 = 1192 * y1;
-        r = CLAMP((y1192 + 1634 * v), 0, 262143);
-        g = CLAMP((y1192 - 833 * v - 400 * u), 0, 262143);
-        b = CLAMP((y1192 + 2066 * u), 0, 262143);
+            r = CLAMP(yy1 + vv, 0, 262143);
+            g = CLAMP(yy1 - uv, 0, 262143);
+            b = CLAMP(yy1 + uu, 0, 262143);
 
-        r = (r >> 13) & 0x1f;
-        g = (g >> 12) & 0x3f;
-        b = (b >> 13) & 0x1f;
+            rgb[rgbIndex++] = ((g >> 7) & 0xe0) | ((b >> 13) & 0x1f);
+            rgb[rgbIndex++] = ((r >> 10) & 0xf8) | ((g >> 15) & 0x07);
 
-        rgb[i + 0] = (g << 5 | b);
-        rgb[i + 1] = (r << 3 | g >> 3);
+            r = CLAMP(yy2 + vv, 0, 262143);
+            g = CLAMP(yy2 - uv, 0, 262143);
+            b = CLAMP(yy2 + uu, 0, 262143);
 
-        y1192 = 1192 * y2;
-        r = CLAMP((y1192 + 1634 * v), 0, 262143);
-        g = CLAMP((y1192 - 833 * v - 400 * u), 0, 262143);
-        b = CLAMP((y1192 + 2066 * u), 0, 262143);
-
-        r = (r >> 13) & 0x1f;
-        g = (g >> 12) & 0x3f;
-        b = (b >> 13) & 0x1f;
-
-        rgb[i + 2] = (g << 5 | b);
-        rgb[i + 3] = (r << 3 | g >> 3);
+            rgb[rgbIndex++] = ((g >> 7) & 0xe0) | ((b >> 13) & 0x1f);
+            rgb[rgbIndex++] = ((r >> 10) & 0xf8) | ((g >> 15) & 0x07);
+        }
     }
 }
 
@@ -215,7 +213,7 @@ camera_memory_t* CameraHAL_GenClientData(const sp<IMemory> &dataPtr,
     data = (void *)((char *)(mHeap->base()) + offset);
 
     clientData = lcdev->request_memory(-1, size, 1, lcdev->user);
-    if (clientData && size > 0)
+    if (clientData)
         memcpy(clientData->data, data, size);
 
     return clientData;
@@ -386,7 +384,7 @@ int camera_set_preview_window(struct camera_device *device,
 {
     int rv = -EINVAL;
     int min_bufs = -1;
-    const int kBufferCount = 4;
+    const int kBufferCount = 6;
     legacy_camera_device *lcdev = NULL;
 
     if (!device)
