@@ -336,11 +336,8 @@ void CameraHAL_FixupParams(struct camera_device *device,
     if (!settings.get("mot-areas-to-focus"))
         settings.set("mot-areas-to-focus", "0");
 
-    if (!settings.get("zoom-ratios"))
-        settings.set("zoom-ratios", "100,200,300,400,500,600");
-
-    if (!settings.get("max-zoom"))
-        settings.set("max-zoom", "4");
+    settings.set("zoom-ratios", "100,200,300,400");
+    settings.set("max-zoom", "4");
 
     /* ISO */
     settings.set("iso", "auto");
@@ -478,11 +475,6 @@ void camera_enable_msg_type(struct camera_device *device, int32_t msg_type)
 
     if (!device)
         return;
-
-    if (msg_type & CAMERA_MSG_RAW_IMAGE_NOTIFY) {
-        msg_type &= ~CAMERA_MSG_RAW_IMAGE_NOTIFY;
-        msg_type |= CAMERA_MSG_RAW_IMAGE;
-    }
 
     lcdev = (legacy_camera_device*) device;
     lcdev->hwif->enableMsgType(msg_type);
