@@ -91,6 +91,7 @@ struct legacy_camera_device {
     /* Old world */
     sp<CameraHardwareInterface>    hwif;
     gralloc_module_t const         *gralloc;
+    camera_memory_t*               clientData;
     vector<camera_memory_t*>       sentFrames;
     sp<Overlay>                    overlay;
 
