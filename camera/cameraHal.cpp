@@ -199,7 +199,7 @@ void queue_buffer_hook(void *data, void *buffer, size_t size)
         LOGE("%s: could not enqueue gralloc buffer", __FUNCTION__);
 }
 
-camera_memory_t* CameraHAL_GenClientData(const sp<IMemory> &dataPtr,
+camera_memory_t* GenClientData(const sp<IMemory> &dataPtr,
                                          legacy_camera_device *lcdev)
 {
     ssize_t offset;
@@ -218,7 +218,7 @@ camera_memory_t* CameraHAL_GenClientData(const sp<IMemory> &dataPtr,
     return clientData;
 }
 
-void CameraHAL_DataCb(int32_t msg_type, const sp<IMemory>& dataPtr,
+void CameraHAL_DataCb(int32_t msgType, const sp<IMemory>& dataPtr,
                       void *user)
 {
     legacy_camera_device *lcdev = (legacy_camera_device *) user;
@@ -253,7 +253,7 @@ void CameraHAL_DataTSCb(nsecs_t timestamp, int32_t msg_type,
         return;
     }
 
-    mem = CameraHAL_GenClientData(dataPtr, lcdev);
+    mem = GenClientData(dataPtr, lcdev);
     if (mem) {
         lcdev->sentFrames.push_back(mem);
         lcdev->data_timestamp_callback(timestamp, msg_type, mem, 0, lcdev->user);
@@ -271,9 +271,9 @@ void CameraHAL_NotifyCb(int32_t msg_type, int32_t ext1, int32_t ext2, void *user
 
 inline void destroyOverlay(legacy_camera_device *lcdev)
 {
-    if (lcdev->overlay) {
+    if (lcdev->overlay != NULL) {
         lcdev->overlay.clear();
-        if (lcdev->hwif)
+        if (lcdev->hwif != NULL)
             lcdev->hwif->setOverlay(lcdev->overlay);
     }
 }
@@ -395,7 +395,7 @@ int camera_set_preview_window(struct camera_device *device,
     int min_bufs = -1;
     const int kBufferCount = 6;
 
-    if (device!)
+    if (!device)
         return rv;
 
     if (lcdev->window == window)
@@ -631,7 +631,7 @@ void camera_release(struct camera_device *device)
 {
     legacy_camera_device *lcdev = (legacy_camera_device*) device;
     destroyOverlay(lcdev);
-    releaseCameraFrames(lcdev)
+    releaseCameraFrames(lcdev);
 
     if (lcdev->clientData)
         lcdev->clientData->release(lcdev->clientData);
