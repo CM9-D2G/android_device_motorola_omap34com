@@ -39,42 +39,9 @@
 
 using namespace std;
 
-#include "CameraHardwareInterface.h"
-
-/* Prototypes and extern functions. */
-extern "C" android::sp<android::CameraHardwareInterface> HAL_openCameraHardware(int cameraId);
-extern "C" int HAL_getNumberOfCameras();
-extern "C" void HAL_getCameraInfo(int cameraId, struct CameraInfo* cameraInfo);
+#include "MotoCameraWrapper.h"
 
 namespace android {
-     int camera_device_open(const hw_module_t* module, const char* name, hw_device_t** device);
-     int CameraHAL_GetCam_Info(int camera_id, struct camera_info *info);
-}
-
-static hw_module_methods_t camera_module_methods = {
-    open: android::camera_device_open
-};
-
-camera_module_t HAL_MODULE_INFO_SYM = {
-    common: {
-        tag: HARDWARE_MODULE_TAG,
-        version_major: 1,
-        version_minor: 1,
-        id: CAMERA_HARDWARE_MODULE_ID,
-        name: "Camera HAL for ICS/CM9",
-        author: "Won-Kyu Park, Raviprasad V Mummidi, Ivan Zupan, Epsylon3, rondoval",
-        methods: &camera_module_methods,
-        dso: NULL,
-        reserved: {0},
-    },
-    get_number_of_cameras: android::HAL_getNumberOfCameras,
-    get_camera_info: android::CameraHAL_GetCam_Info,
-};
-
-
-namespace android {
-
-int camera_set_preview_window(struct camera_device *device, struct preview_stream_ops *window);
 
 struct legacy_camera_device {
     camera_device_t device;
@@ -99,14 +66,6 @@ struct legacy_camera_device {
     int32_t                        previewHeight;
     OverlayFormats                 previewFormat;
 };
-
-static inline void log_camera_params(const char* name,
-                                     const CameraParameters params)
-{
-#ifdef LOG_FULL_PARAMS
-    params.dump();
-#endif
-}
 
 inline void YUYVtoRGB565(unsigned char *rgb, unsigned char* yuyv,
                          int width, int height, int stride)
@@ -227,7 +186,7 @@ void CameraHAL_DataCb(int32_t msgType, const sp<IMemory>& dataPtr,
     if (lcdev->data_callback && lcdev->request_memory) {
         if (lcdev->clientData)
             lcdev->clientData->release(lcdev->clientData);
-        lcdev->clientData = genClientData(lcdev, dataPtr);
+        lcdev->clientData = GenClientData(lcdev, dataPtr);
         if (lcdev->clientData)
              lcdev->data_callback(msgType, lcdev->clientData, 0, NULL, lcdev->user);
     }
@@ -599,19 +558,32 @@ int camera_set_parameters(struct camera_device *device,
 char *camera_get_parameters(struct camera_device *device)
 {
     legacy_camera_device *lcdev = (legacy_camera_device*) device;
-    char *params = NULL;
-    String8 params_str8;
-    CameraParameters camParams;
+    CameraParameters params(lcdev->hwif->getParameters());
+    int width = 0, height = 0;
 
-    camParams = lcdev->hwif->getParameters();
-    CameraHAL_FixupParams(device, camParams);
-    log_camera_params(__FUNCTION__, camParams);
+    params.getPictureSize(&width, &height);
+    if (width > 0 && height > 0) {
+        float ratio = (height * 1.0) / width;
 
-    params_str8 = camParams.flatten();
-    params = (char*)malloc(sizeof(char) *(params_str8.length() + 1));
-    strcpy(params, params_str8.string());
+        if (ratio < 0.70 && width >= 640) {
+            params.setPreviewSize(848, 480);
+            params.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO, "848x480");
+        } else if (width == 848) {
+            params.setPreviewSize(640, 480);
+            params.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO, "640x480");
+        }
+    }
 
-    return params;
+    params.getPreviewSize(&width, &height);
+    if (width != lcdev->previewWidth || height != lcdev->previewHeight) {
+//        camera_set_preview_window(device, lcdev->window);
+    }
+
+#ifdef LOG_FULL_PARAMS
+    LOGV("%s: Parameters", __FUNCTION__);
+    params.dump();
+#endif
+    return strdup(params.flatten().string());;
 }
 
 void camera_put_parameters(struct camera_device *device, char *params)
@@ -673,14 +645,20 @@ int camera_device_open(const hw_module_t* module, const char *name,
         return ret;
 
     int cameraId = atoi(name);
-
     LOGD("%s: name:%s device:%p cameraId:%d\n", __FUNCTION__, name, device, cameraId);
 
     lcdev = (legacy_camera_device *)malloc(sizeof(*lcdev));
+    if (!lcdev)
+        return -ENOMEM;
+
     camera_ops = (camera_device_ops_t *)malloc(sizeof(*camera_ops));
+    if (!camera_ops) {
+        free(lcdev);
+        return -ENOMEM;
+    }
+
     memset(lcdev, 0, sizeof(*lcdev));
     memset(camera_ops, 0, sizeof(*camera_ops));
-
     lcdev->device.common.tag               = HARDWARE_DEVICE_TAG;
     lcdev->device.common.version           = 0;
     lcdev->device.common.module            = (hw_module_t *)(module);
@@ -712,28 +690,49 @@ int camera_device_open(const hw_module_t* module, const char *name,
     camera_ops->dump                       = camera_dump;
 
     lcdev->id = cameraId;
-    lcdev->hwif = HAL_openCameraHardware(cameraId);
-    *device = &lcdev->device.common;
-
+    lcdev->hwif = MotoCameraWrapper::createInstance(cameraId);
     if (lcdev->hwif == NULL) {
-         ret = -EIO;
-         goto err_create_camera_hw;
-    }
-
-    return ret;
-
-err_create_camera_hw:
-    if (lcdev) {
-        free(lcdev);
-        lcdev = NULL;
-    }
-    if (camera_ops) {
         free(camera_ops);
-        camera_ops = NULL;
+        free(lcdev);
+        return -EIO;
     }
-    *device = NULL;
 
-    return ret;
+    *device = &lcdev->device.common;
+    return NO_ERROR;
+}
+
+static int get_number_of_cameras(void)
+{
+    return 1;
+}
+
+static int get_camera_info(int camera_id, struct camera_info *info)
+{
+    info->facing = CAMERA_FACING_BACK;
+    info->orientation = 90;
+    LOGD("%s: id:%i faceing:%i orientation: %i", __FUNCTION__,
+          camera_id, info->facing, info->orientation);
+    return 0;
 }
 
 } /* namespace android */
+
+static hw_module_methods_t camera_module_methods = {
+    open: android::camera_device_open
+};
+
+camera_module_t HAL_MODULE_INFO_SYM = {
+    common: {
+        tag: HARDWARE_MODULE_TAG,
+        version_major: 1,
+        version_minor: 1,
+        id: CAMERA_HARDWARE_MODULE_ID,
+        name: "Camera HAL for ICS/CM9",
+        author: "Won-Kyu Park, Raviprasad V Mummidi, Ivan Zupan, Epsylon3, rondoval",
+        methods: &camera_module_methods,
+        dso: NULL,
+        reserved: {0},
+    },
+    get_number_of_cameras: android::get_number_of_cameras,
+    get_camera_info: android::get_camera_info,
+};

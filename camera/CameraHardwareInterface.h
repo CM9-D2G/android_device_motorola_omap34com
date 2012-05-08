@@ -197,12 +197,6 @@ public:
     virtual CameraParameters  getParameters() const = 0; // 0x58
 
     /**
-     * Set/return custom camera parameters
-     */
-    virtual status_t    setCustomParameters(const CameraParameters& params) = 0; // 0x5C
-    virtual CameraParameters  getCustomParameters() const = 0; // 0x60
-
-    /**
      * Send command to camera driver.
      */
     virtual status_t sendCommand(int32_t cmd, int32_t arg1, int32_t arg2) = 0; // 0x64
@@ -219,17 +213,6 @@ public:
     virtual status_t dump(int fd, const Vector<String16>& args) const = 0; // 0x6C
 
 };
-
-/**
- * The functions need to be provided by the camera HAL.
- *
- * If getNumberOfCameras() returns N, the valid cameraId for getCameraInfo()
- * and openCameraHardware() is 0 to N-1.
- */
-extern "C" int HAL_getNumberOfCameras();
-extern "C" void HAL_getCameraInfo(int cameraId, struct CameraInfo* cameraInfo);
-/* HAL should return NULL if it fails to open camera hardware. */
-extern "C" sp<CameraHardwareInterface> HAL_openCameraHardware(int cameraId);
 
 };  // namespace android
 
