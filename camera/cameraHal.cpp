@@ -1,5 +1,4 @@
 /*
- *
  * Copyright (C) 2012, rondoval (ms2), Epsylon3 (defy)
  * Copyright (C) 2012, Won-Kyu Park
  * Copyright (C) 2012, Raviprasad V Mummidi
@@ -186,7 +185,7 @@ void CameraHAL_DataCb(int32_t msgType, const sp<IMemory>& dataPtr,
     if (lcdev->data_callback && lcdev->request_memory) {
         if (lcdev->clientData)
             lcdev->clientData->release(lcdev->clientData);
-        lcdev->clientData = GenClientData(lcdev, dataPtr);
+        lcdev->clientData = GenClientData(dataPtr, lcdev);
         if (lcdev->clientData)
              lcdev->data_callback(msgType, lcdev->clientData, 0, NULL, lcdev->user);
     }
@@ -243,106 +242,6 @@ static void releaseCameraFrames(legacy_camera_device *lcdev)
     for (it = lcdev->sentFrames.begin(); it != lcdev->sentFrames.end(); it++)
         (*it)->release(*it);
     lcdev->sentFrames.clear();
-}
-
-
-int CameraHAL_GetCam_Info(int camera_id, struct camera_info *info)
-{
-    int rv = 0;
-
-    CameraInfo cam_info;
-    HAL_getCameraInfo(camera_id, &cam_info);
-
-    info->facing = cam_info.facing;
-    info->orientation = 90;
-
-    LOGD("%s: id:%i faceing:%i orientation: %i", __FUNCTION__,
-          camera_id, info->facing, info->orientation);
-
-    return rv;
-}
-
-void CameraHAL_FixupParams(struct camera_device *device,
-                           CameraParameters &settings)
-{
-    settings.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT,
-                 CameraParameters::PIXEL_FORMAT_YUV422I);
-
-    settings.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FORMATS,
-                 CameraParameters::PIXEL_FORMAT_YUV422I);
-
-    settings.setPreviewFormat(CameraParameters::PIXEL_FORMAT_YUV422I);
-
-    settings.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO, "640x480");
-
-    if (!settings.get("preview-size-values"))
-        settings.set("preview-size-values", "176x144,320x240,352x288,480x360,640x480,848x480");
-
-    if (!settings.get("picture-size-values"))
-        settings.set("picture-size-values", "320x240,640x480,1280x960,1600x1200,2048x1536,2592x1456,2592x1936");
-
-    if (!settings.get("mot-video-size-values"))
-        settings.set("mot-video-size-values", "176x144,320x240,352x288,640x480,848x480");
-
-    settings.set(android::CameraParameters::KEY_FOCUS_MODE, "auto");
-
-    /* defy: focus locks the camera, but dunno how to disable it... */
-    if (!settings.get(android::CameraParameters::KEY_SUPPORTED_FOCUS_MODES))
-        settings.set(android::CameraParameters::KEY_SUPPORTED_FOCUS_MODES, "auto,macro,fixed,infinity,off");
-
-    if (!settings.get(android::CameraParameters::KEY_SUPPORTED_EFFECTS))
-        settings.set(android::CameraParameters::KEY_SUPPORTED_EFFECTS, "none,mono,sepia,negative,solarize,red-tint,green-tint,blue-tint");
-
-    if (!settings.get(android::CameraParameters::KEY_SUPPORTED_SCENE_MODES))
-        settings.set(android::CameraParameters::KEY_SUPPORTED_SCENE_MODES,
-                     "auto,portrait,landscape,action,night-portrait,sunset,steadyphoto");
-
-    if (!settings.get(android::CameraParameters::KEY_EXPOSURE_COMPENSATION))
-        settings.set(android::CameraParameters::KEY_EXPOSURE_COMPENSATION, "0");
-
-    if (!settings.get("mot-max-areas-to-focus"))
-        settings.set("mot-max-areas-to-focus", "1");
-
-    if (!settings.get("mot-areas-to-focus"))
-        settings.set("mot-areas-to-focus", "0");
-
-    settings.set("zoom-ratios", "100,200,300,400");
-    settings.set("max-zoom", "4");
-
-    /* ISO */
-    settings.set("iso", "auto");
-    char *moto_iso_values = strdup(settings.get("mot-picture-iso-values"));
-    char iso_values[256];
-    memset(iso_values, '\0', sizeof(iso_values));
-    if ((!settings.get("iso-values") && moto_iso_values)) {
-        int count = 0;
-        char *iso = strtok(moto_iso_values, ",");
-        while (iso != NULL) {
-            if (count > 0)
-                strcat(iso_values, ",");
-
-            if (isdigit(iso[0]))
-                strcat(iso_values, "ISO");
-
-            strcat(iso_values, iso);
-            iso = strtok(NULL, ",");
-            count++;
-        }
-    }
-    settings.set("iso-values", iso_values);
-    free(moto_iso_values);
-
-    /* defy: required to prevent panorama crash, but require also opengl ui */
-    const char *fps_range_values = "(1000,30000),(1000,25000),(1000,20000),"
-                                   "(1000,24000),(1000,15000),(1000,10000)";
-    if (!settings.get(android::CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE))
-        settings.set(android::CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE, fps_range_values);
-
-    const char *preview_fps_range = "1000,30000";
-    if (!settings.get(android::CameraParameters::KEY_PREVIEW_FPS_RANGE))
-        settings.set(android::CameraParameters::KEY_PREVIEW_FPS_RANGE, preview_fps_range);
-
-    LOGD("Parameters fixed up");
 }
 
 /* Hardware Camera interface handlers. */
@@ -560,11 +459,11 @@ char *camera_get_parameters(struct camera_device *device)
     legacy_camera_device *lcdev = (legacy_camera_device*) device;
     CameraParameters params(lcdev->hwif->getParameters());
     int width = 0, height = 0;
+    float ratio = 0.0;
 
     params.getPictureSize(&width, &height);
     if (width > 0 && height > 0) {
-        float ratio = (height * 1.0) / width;
-
+        ratio = (height * 1.0) / width;
         if (ratio < 0.70 && width >= 640) {
             params.setPreviewSize(848, 480);
             params.set(CameraParameters::KEY_PREFERRED_PREVIEW_SIZE_FOR_VIDEO, "848x480");
@@ -623,13 +522,11 @@ int camera_device_close(hw_device_t* device)
 {
     legacy_camera_device *lcdev = (legacy_camera_device*) device;
     if (lcdev) {
-        if (lcdev->device.ops) {
+        if (lcdev->device.ops)
             free(lcdev->device.ops);
-        }
         destroyOverlay(lcdev);
         free(lcdev);
     }
-
     return NO_ERROR;
 }
 
