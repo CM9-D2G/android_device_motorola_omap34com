@@ -204,7 +204,7 @@ void MotoCameraWrapper::dataCb(int32_t msgType, const sp<IMemory>& dataPtr, void
 
     if (msgType == CAMERA_MSG_RAW_IMAGE ||
         msgType == CAMERA_MSG_COMPRESSED_IMAGE) {
-        if (_this->mTorchThread)
+        if (_this->mTorchThread != NULL)
             _this->mTorchThread->scheduleTorch();
     }
  }
