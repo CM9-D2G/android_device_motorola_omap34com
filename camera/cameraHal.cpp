@@ -121,7 +121,6 @@ static void processPreviewData(char *frame, size_t size,
     void *vaddr;
     int ret;
 
-
     if (lcdev->window == NULL)
         return;
 
@@ -321,12 +320,14 @@ int camera_set_preview_window(struct camera_device *device,
         return -1;
     }
 
-    lcdev->overlay = new Overlay(lcdev->previewWidth,
-                                 lcdev->previewHeight,
-                                 OVERLAY_FORMAT_YUV422I,
-                                 overlayQueueBuffer,
-                                 (void *) lcdev);
-    lcdev->hwif->setOverlay(lcdev->overlay);
+    if (lcdev->hwif->useOverlay()) {
+        lcdev->overlay = new Overlay(lcdev->previewWidth,
+                                     lcdev->previewHeight,
+                                     OVERLAY_FORMAT_YUV422I,
+                                     overlayQueueBuffer,
+                                     (void *) lcdev);
+        lcdev->hwif->setOverlay(lcdev->overlay);
+    }
 
     return NO_ERROR;
 }
@@ -462,11 +463,12 @@ int camera_set_parameters(struct camera_device *device,
                           const char *params)
 {
     legacy_camera_device *lcdev = (legacy_camera_device*) device;
-    CameraParameters camParams;
-
-    String8 params_str8(params);
-    camParams.unflatten(params_str8);
-    return lcdev->hwif->setParameters(camParams);
+    String8 s(params);
+    CameraParameters p(s);
+#ifdef LOG_FULL_PARAMS
+    p.dump();
+#endif
+    return lcdev->hwif->setParameters(p);
 }
 
 char *camera_get_parameters(struct camera_device *device)
@@ -490,14 +492,13 @@ char *camera_get_parameters(struct camera_device *device)
 
     params.getPreviewSize(&width, &height);
     if (width != lcdev->previewWidth || height != lcdev->previewHeight) {
-//        camera_set_preview_window(device, lcdev->window);
+        camera_set_preview_window(device, lcdev->window);
     }
 
 #ifdef LOG_FULL_PARAMS
-    LOGV("%s: Parameters", __FUNCTION__);
     params.dump();
 #endif
-    return strdup(params.flatten().string());;
+    return strdup(params.flatten().string());
 }
 
 void camera_put_parameters(struct camera_device *device, char *params)
