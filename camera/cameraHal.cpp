@@ -63,7 +63,7 @@ struct legacy_camera_device {
 
     int32_t                        previewWidth;
     int32_t                        previewHeight;
-    OverlayFormats                 previewFormat;
+    Overlay::Format                previewFormat;
 };
 
 inline void YUYVtoRGB565(char *rgb, char *yuyv, int width,
@@ -114,7 +114,7 @@ inline void YUYVtoRGB565(char *rgb, char *yuyv, int width,
 /* Overlay hooks */
 static void processPreviewData(char *frame, size_t size,
                                legacy_camera_device *lcdev,
-                               OverlayFormats format)
+                               Overlay::Format format)
 {
     buffer_handle_t *bufHandle = NULL;
     preview_stream_ops *window = NULL;
@@ -146,10 +146,10 @@ static void processPreviewData(char *frame, size_t size,
         return;
 
     switch (format) {
-        case OVERLAY_FORMAT_YUV422I:
+        case Overlay::FORMAT_YUV422I:
             YUYVtoRGB565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight, stride);
             break;
-        case OVERLAY_FORMAT_RGB565:
+        case Overlay::FORMAT_RGB565:
             memcpy(vaddr, frame, size);
             break;
         default:
@@ -168,7 +168,7 @@ static void overlayQueueBuffer(void *data, void *buffer, size_t size)
     if (data == NULL || buffer == NULL)
         return;
 
-    OverlayFormats format = (OverlayFormats) lcdev->overlay->getFormat();
+    Overlay::Format format = (Overlay::Format) lcdev->overlay->getFormat();
     processPreviewData((char*)buffer, size, lcdev, format);
 }
 
@@ -307,7 +307,7 @@ int camera_set_preview_window(struct camera_device *device,
     CameraParameters params(lcdev->hwif->getParameters());
     params.getPreviewSize(&lcdev->previewWidth, &lcdev->previewHeight);
     const char *previewFormat = params.getPreviewFormat();
-    lcdev->previewFormat = getOverlayFormatFromString(previewFormat);
+    lcdev->previewFormat = Overlay::getFormatFromString(previewFormat);
 
     if (window->set_usage(window, CAMHAL_GRALLOC_USAGE)) {
         LOGE("%s: could not set usage on gralloc buffer", __FUNCTION__);
@@ -325,7 +325,7 @@ int camera_set_preview_window(struct camera_device *device,
     if (lcdev->hwif->useOverlay()) {
         lcdev->overlay = new Overlay(lcdev->previewWidth,
                                      lcdev->previewHeight,
-                                     OVERLAY_FORMAT_YUV422I,
+                                     Overlay::FORMAT_YUV422I,
                                      overlayQueueBuffer,
                                      (void *) lcdev);
         lcdev->hwif->setOverlay(lcdev->overlay);
