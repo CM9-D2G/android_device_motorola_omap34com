@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2011 The Android Open Source Project
+ * Copyright (C) 2012 The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -108,6 +108,11 @@ sp<MotoCameraWrapper> MotoCameraWrapper::createInstance(int cameraId)
         /* entry point of Bayer driver is android::CameraHal::createInstance() */
         motoInterface = openMotoInterface("libbayercamera.so", "_ZN7android9CameraHal14createInstanceEv");
         type = CAM_BAYER;
+    } else if (deviceCardMatches("/dev/video0", "ov8810")) {
+        LOGI("Detected OMNIVISION device\n");
+        /* entry point of Omnivision driver is android::CameraHal::createInstance() */
+        motoInterface = openMotoInterface("libcamera.so", "_ZN7android9CameraHal14createInstanceEv");
+        type = CAM_OMNIVISION;
     } else {
         LOGE("Camera type detection failed");
     }

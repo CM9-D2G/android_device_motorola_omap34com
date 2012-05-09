@@ -47,7 +47,8 @@ public:
 private:
     typedef enum {
         CAM_SOC,
-        CAM_BAYER
+        CAM_BAYER,
+        CAM_OMNIVISION
     } CameraType;
 
     class TorchEnableThread : public Thread {
