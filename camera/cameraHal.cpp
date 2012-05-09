@@ -66,8 +66,8 @@ struct legacy_camera_device {
     OverlayFormats                 previewFormat;
 };
 
-inline void YUYVtoRGB565(unsigned char *rgb, unsigned char* yuyv,
-                         int width, int height, int stride)
+inline void YUYVtoRGB565(char *rgb, char *yuyv, int width,
+                         int height, int stride)
 {
     int row, pos;
     int yuvIndex = 0;
@@ -112,13 +112,11 @@ inline void YUYVtoRGB565(unsigned char *rgb, unsigned char* yuyv,
 }
 
 /* Overlay hooks */
-void queue_buffer_hook(void *data, void *buffer, size_t size)
+static void processPreviewData(char *frame, size_t size,
+                               legacy_camera_device *lcdev)
 {
-    legacy_camera_device *lcdev = (legacy_camera_device *) data;
     buffer_handle_t *bufHandle = NULL;
     preview_stream_ops *window = NULL;
-    unsigned char *yuyv = NULL;
-    unsigned char *rgb  = NULL;
     int32_t stride;
     void *vaddr;
     int ret;
@@ -147,14 +145,30 @@ void queue_buffer_hook(void *data, void *buffer, size_t size)
     if (ret != NO_ERROR)
         return;
 
-    yuyv = (unsigned char *) buffer;
-    rgb  = (unsigned char *) vaddr;
-    YUYVtoRGB565(rgb, yuyv, lcdev->previewWidth, lcdev->previewHeight, stride);
+    switch (lcdev->previewFormat) {
+        case OVERLAY_FORMAT_YUV422I:
+            YUYVtoRGB565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight, stride);
+            break;
+        case OVERLAY_FORMAT_RGB565:
+            memcpy(vaddr, frame, size);
+            break;
+        default:
+            LOGE("%s: Unknown video format, cannot convert!", __FUNCTION__);
+    }
     lcdev->gralloc->unlock(lcdev->gralloc, *bufHandle);
 
     ret = window->enqueue_buffer(window, bufHandle);
     if (ret != NO_ERROR)
         LOGE("%s: could not enqueue gralloc buffer", __FUNCTION__);
+}
+
+static void overlayQueueBuffer(void *data, void *buffer, size_t size)
+{
+    legacy_camera_device *lcdev = (legacy_camera_device *) data;
+    if (data == NULL || buffer == NULL)
+        return;
+
+    processPreviewData((char*)buffer, size, lcdev);
 }
 
 camera_memory_t* GenClientData(const sp<IMemory> &dataPtr,
@@ -181,6 +195,10 @@ void CameraHAL_DataCb(int32_t msgType, const sp<IMemory>& dataPtr,
 {
     legacy_camera_device *lcdev = (legacy_camera_device *) user;
     camera_memory_t *mem = NULL;
+    sp<IMemoryHeap> mHeap;
+    ssize_t offset;
+    size_t  size;
+    char *buffer;
 
     if (lcdev->data_callback && lcdev->request_memory) {
         if (lcdev->clientData)
@@ -189,15 +207,12 @@ void CameraHAL_DataCb(int32_t msgType, const sp<IMemory>& dataPtr,
         if (lcdev->clientData)
              lcdev->data_callback(msgType, lcdev->clientData, 0, NULL, lcdev->user);
     }
-/*
-    if (msgType == CAMERA_MSG_PREVIEW_FRAME && !lcdev->overlay) {
-        ssize_t offset;
-        size_t  size;
-        sp<IMemoryHeap> mHeap = dataPtr->getMemory(&offset, &size);
-        char* buffer = (char*) mHeap->getBase() + offset;
-        processPreviewData(buffer, size, lcdev, lcdev->previewFormat);
+
+    if (msgType == CAMERA_MSG_PREVIEW_FRAME && lcdev->overlay == NULL) {
+        mHeap = dataPtr->getMemory(&offset, &size);
+        buffer = (char*)mHeap->getBase() + offset;
+        processPreviewData(buffer, size, lcdev);
     }
-*/
 }
 
 void CameraHAL_DataTSCb(nsecs_t timestamp, int32_t msg_type,
@@ -309,7 +324,7 @@ int camera_set_preview_window(struct camera_device *device,
     lcdev->overlay = new Overlay(lcdev->previewWidth,
                                  lcdev->previewHeight,
                                  OVERLAY_FORMAT_YUV422I,
-                                 queue_buffer_hook,
+                                 overlayQueueBuffer,
                                  (void *) lcdev);
     lcdev->hwif->setOverlay(lcdev->overlay);
 
