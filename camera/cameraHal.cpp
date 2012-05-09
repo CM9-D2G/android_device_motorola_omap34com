@@ -113,7 +113,8 @@ inline void YUYVtoRGB565(char *rgb, char *yuyv, int width,
 
 /* Overlay hooks */
 static void processPreviewData(char *frame, size_t size,
-                               legacy_camera_device *lcdev)
+                               legacy_camera_device *lcdev,
+                               OverlayFormats format)
 {
     buffer_handle_t *bufHandle = NULL;
     preview_stream_ops *window = NULL;
@@ -144,7 +145,7 @@ static void processPreviewData(char *frame, size_t size,
     if (ret != NO_ERROR)
         return;
 
-    switch (lcdev->previewFormat) {
+    switch (format) {
         case OVERLAY_FORMAT_YUV422I:
             YUYVtoRGB565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight, stride);
             break;
@@ -167,7 +168,8 @@ static void overlayQueueBuffer(void *data, void *buffer, size_t size)
     if (data == NULL || buffer == NULL)
         return;
 
-    processPreviewData((char*)buffer, size, lcdev);
+    OverlayFormats format = (OverlayFormats) lcdev->overlay->getFormat();
+    processPreviewData((char*)buffer, size, lcdev, format);
 }
 
 camera_memory_t* GenClientData(const sp<IMemory> &dataPtr,
@@ -210,7 +212,7 @@ void CameraHAL_DataCb(int32_t msgType, const sp<IMemory>& dataPtr,
     if (msgType == CAMERA_MSG_PREVIEW_FRAME && lcdev->overlay == NULL) {
         mHeap = dataPtr->getMemory(&offset, &size);
         buffer = (char*)mHeap->getBase() + offset;
-        processPreviewData(buffer, size, lcdev);
+        processPreviewData(buffer, size, lcdev, lcdev->previewFormat);
     }
 }
 
