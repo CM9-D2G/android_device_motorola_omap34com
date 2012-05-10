@@ -422,9 +422,7 @@ CameraParameters MotoCameraWrapper::getParameters() const
     ret.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE,
             "(1000,30000),(1000,25000),(1000,20000),(1000,24000),(1000,15000),(1000,10000)");
 
-    if (mCameraType == CAM_OMNIVISION) {
-        ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "15000, 30000");
-    } else {
+    if (mCameraType != CAM_OMNIVISION) {
         ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "1000, 30000");
     }
 
