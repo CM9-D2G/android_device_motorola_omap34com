@@ -421,7 +421,12 @@ CameraParameters MotoCameraWrapper::getParameters() const
     ret.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT, CameraParameters::PIXEL_FORMAT_YUV422I);
     ret.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE,
             "(1000,30000),(1000,25000),(1000,20000),(1000,24000),(1000,15000),(1000,10000)");
-    ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "1000, 30000");
+
+    if (mCameraType == CAM_OMNIVISION) {
+        ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "15000, 30000");
+    } else {
+        ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "1000, 30000");
+    }
 
     ret.set("cam-mode", mVideoMode ? "1" : "0");
 
