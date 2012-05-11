@@ -66,8 +66,8 @@ struct legacy_camera_device {
     Overlay::Format                previewFormat;
 };
 
-inline void YUYVtoRGB565(char *rgb, char *yuyv, int width,
-                         int height, int stride)
+static inline void YUYVtoRGB565(char *rgb, char *yuyv, int width,
+                                int height, int stride)
 {
     int row, pos;
     int yuvIndex = 0;
@@ -111,6 +111,34 @@ inline void YUYVtoRGB565(char *rgb, char *yuyv, int width,
     }
 }
 
+static inline void YUV420spToRGB565(char* rgb, char* yuv420sp, int width,
+                                    int height, int stride)
+{
+    int frameSize = width * height;
+    int padding = (stride - width) * 2;
+    int r, g, b;
+    for (int j = 0, yp = 0, k = 0; j < height; j++) {
+        int uvp = frameSize + (j >> 1) * width, u = 0, v = 0;
+        for (int i = 0; i < width; i++, yp++) {
+            int y = (0xff & ((int) yuv420sp[yp])) - 16;
+            if (y < 0) y = 0;
+            if ((i & 1) == 0) {
+                v = (0xff & yuv420sp[uvp++]) - 128;
+                u = (0xff & yuv420sp[uvp++]) - 128;
+            }
+
+            int y1192 = 1192 * y;
+            r = CLAMP(y1192 + 1634 * v, 0, 262143);
+            g = CLAMP(y1192 - 833 * v - 400 * u, 0, 262143);
+            b = CLAMP(y1192 + 2066 * u, 0, 262143);
+
+            rgb[k++] = ((g >> 7) & 0xe0) | ((b >> 13) & 0x1f);
+            rgb[k++] = ((r >> 10) & 0xf8) | ((g >> 15) & 0x07);
+        }
+        k += padding;
+    }
+}
+
 /* Overlay hooks */
 static void processPreviewData(char *frame, size_t size,
                                legacy_camera_device *lcdev,
@@ -148,6 +176,9 @@ static void processPreviewData(char *frame, size_t size,
     switch (format) {
         case Overlay::FORMAT_YUV422I:
             YUYVtoRGB565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight, stride);
+            break;
+        case Overlay::FORMAT_YUV420SP:
+            YUV420spToRGB565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight, stride);
             break;
         case Overlay::FORMAT_RGB565:
             memcpy(vaddr, frame, size);
