@@ -19,6 +19,7 @@
 #include <cmath>
 #include <dlfcn.h>
 #include <fcntl.h>
+#include <cutils/properties.h>
 #include <linux/videodev2.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
@@ -94,27 +95,43 @@ sp<MotoCameraWrapper> MotoCameraWrapper::createInstance(int cameraId)
         }
     }
 
-    CameraType type = CAM_SOC;
+    CameraType type = UNKNOWN;
     sp<CameraHardwareInterface> motoInterface;
     sp<MotoCameraWrapper> hardware;
+    char motodevice[PROPERTY_VALUE_MAX];
 
-    if (deviceCardMatches("/dev/video3", "camise")) {
-        LOGI("Detected SOC device\n");
-        /* entry point of SOC driver is android::CameraHalSocImpl::createInstance() */
-        motoInterface = openMotoInterface("libsoccamera.so", "_ZN7android16CameraHalSocImpl14createInstanceEv");
-        type = CAM_SOC;
-    } else if (deviceCardMatches("/dev/video0", "mt9p012")) {
-        LOGI("Detected BAYER device\n");
-        /* entry point of Bayer driver is android::CameraHal::createInstance() */
-        motoInterface = openMotoInterface("libbayercamera.so", "_ZN7android9CameraHal14createInstanceEv");
-        type = CAM_BAYER;
-    } else if (deviceCardMatches("/dev/video0", "ov8810")) {
-        LOGI("Detected OMNIVISION device\n");
-        /* entry point of Omnivision driver is android::CameraHal::createInstance() */
-        motoInterface = openMotoInterface("libcamera.so", "_ZN7android9CameraHal14createInstanceEv");
-        type = CAM_OMNIVISION;
-    } else {
-        LOGE("Camera type detection failed");
+    /* Device detection */
+    property_get("ro.product.device", motodevice, "");
+    if (strcmp(motodevice, "shadow") == 0) {
+        type = DROIDX;
+    } else if (strcmp(motodevice, "droid2") == 0) {
+        type = DROID2;
+    } else if (strcmp(motodevice, "droid2we") == 0) {
+        type = DROID2WE;
+    } else if (strcmp(motodevice, "jordan") == 0) {
+        if (deviceCardMatches("/dev/video3", "camise")) {
+            type = DEFY_GREEN;
+        } else if (deviceCardMatches("/dev/video0", "mt9p012")) {
+            type = DEFY_RED;
+        }
+    }
+
+    /* Load our Gingerbread library entry point */
+    switch (type) {
+        case DROIDX:
+        case DROID2:
+        case DROID2WE:
+            motoInterface = openMotoInterface("libcamera.so", "_ZN7android9CameraHal14createInstanceEv");
+            break;
+        case DEFY_RED:
+            motoInterface = openMotoInterface("libbayercamera.so", "_ZN7android9CameraHal14createInstanceEv");
+            break;
+        case DEFY_GREEN:
+            motoInterface = openMotoInterface("libsoccamera.so", "_ZN7android16CameraHalSocImpl14createInstanceEv");
+            break;
+        case UNKNOWN:
+        default:
+            break;
     }
 
     if (motoInterface != NULL) {
@@ -136,13 +153,13 @@ MotoCameraWrapper::MotoCameraWrapper(sp<CameraHardwareInterface>& motoInterface,
     mDataCbTimestamp(NULL),
     mCbUserData(NULL)
 {
-    if (type == CAM_SOC)
+    if (type == DEFY_GREEN)
         mTorchThread = new TorchEnableThread(this);
 }
 
 MotoCameraWrapper::~MotoCameraWrapper()
 {
-    if (mCameraType == CAM_SOC) {
+    if (mCameraType == DEFY_GREEN) {
         setSocTorchMode(false);
         mTorchThread->cancelAndWait();
         mTorchThread.clear();
@@ -152,7 +169,7 @@ MotoCameraWrapper::~MotoCameraWrapper()
 void
 MotoCameraWrapper::toggleTorchIfNeeded()
 {
-    if (mCameraType == CAM_SOC)
+    if (mCameraType == DEFY_GREEN)
         setSocTorchMode(mFlashMode == CameraParameters::FLASH_MODE_TORCH);
 }
 
@@ -366,7 +383,7 @@ status_t MotoCameraWrapper::setParameters(const CameraParameters& params)
     if (isWide && !mVideoMode)
         pars.setPreviewFrameRate(24);
 
-    if (mCameraType == CAM_BAYER && mVideoMode)
+    if (mCameraType == DEFY_RED && mVideoMode)
         pars.setPreviewFrameRate(24);
 
     mFlashMode = pars.get(CameraParameters::KEY_FLASH_MODE);
@@ -395,7 +412,7 @@ status_t MotoCameraWrapper::setParameters(const CameraParameters& params)
 CameraParameters MotoCameraWrapper::getParameters() const
 {
     CameraParameters ret = mMotoInterface->getParameters();
-    if (mCameraType == CAM_SOC) {
+    if (mCameraType == DEFY_GREEN) {
         /* the original zoom ratio string is '100,200,300,400,500,600',
            but 500 and 600 are broken for the SOC camera, so limiting
            it here */
@@ -419,10 +436,10 @@ CameraParameters MotoCameraWrapper::getParameters() const
     ret.set(CameraParameters::KEY_EXPOSURE_COMPENSATION_STEP, "0.3333333333333");
 
     ret.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT, CameraParameters::PIXEL_FORMAT_YUV422I);
-    ret.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE,
-            "(1000,30000),(1000,25000),(1000,20000),(1000,24000),(1000,15000),(1000,10000)");
 
-    if (mCameraType != CAM_OMNIVISION) {
+    if ((mCameraType == DEFY_GREEN) || (mCameraType == DEFY_RED)) {
+        ret.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE,
+                "(1000,30000),(1000,25000),(1000,20000),(1000,24000),(1000,15000),(1000,10000)");
         ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "1000, 30000");
     }
 

@@ -46,9 +46,12 @@ public:
 
 private:
     typedef enum {
-        CAM_SOC,
-        CAM_BAYER,
-        CAM_OMNIVISION
+        UNKNOWN,
+        DEFY_GREEN,
+        DEFY_RED,
+        DROIDX,
+        DROID2,
+        DROID2WE
     } CameraType;
 
     class TorchEnableThread : public Thread {
