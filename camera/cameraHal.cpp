@@ -255,7 +255,7 @@ inline void destroyOverlay(legacy_camera_device *lcdev)
 static void releaseCameraFrames(legacy_camera_device *lcdev)
 {
     vector<camera_memory_t*>::iterator it;
-    for (it = lcdev->sentFrames.begin(); it != lcdev->sentFrames.end(); it++)
+    for (it = lcdev->sentFrames.begin(); it != lcdev->sentFrames.end(); ++it)
         (*it)->release(*it);
     lcdev->sentFrames.clear();
 }
@@ -420,14 +420,13 @@ void camera_release_recording_frame(struct camera_device *device,
                                     const void *opaque)
 {
     legacy_camera_device *lcdev = (legacy_camera_device*) device;
-    vector<camera_memory_t*>::iterator it;
-    camera_memory_t *mem = NULL;
 
     if (!opaque)
         return;
 
-    for (it = lcdev->sentFrames.begin(); it != lcdev->sentFrames.end(); it++) {
-        mem = *it;
+    vector<camera_memory_t*>::iterator it;
+    for (it = lcdev->sentFrames.begin(); it != lcdev->sentFrames.end(); ++it) {
+        camera_memory_t *mem = *it;
         if (mem->data == opaque) {
             mem->release(mem);
             lcdev->sentFrames.erase(it);
