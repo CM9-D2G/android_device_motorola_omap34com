@@ -193,11 +193,13 @@ void MotoCameraWrapper::setCallbacks(notify_callback notify_cb,
     mDataCbTimestamp = data_cb_timestamp;
     mCbUserData = user;
 
-    if (mNotifyCb)
+    if (mNotifyCb != NULL)
         notify_cb = &MotoCameraWrapper::notifyCb;
-    if (mDataCb)
+
+    if (mDataCb != NULL)
         data_cb = &MotoCameraWrapper::dataCb;
-    if (mDataCbTimestamp)
+
+    if (mDataCbTimestamp != NULL)
         data_cb_timestamp = &MotoCameraWrapper::dataCbTimestamp;
 
     mMotoInterface->setCallbacks(notify_cb, data_cb, data_cb_timestamp, this);
@@ -412,16 +414,10 @@ status_t MotoCameraWrapper::setParameters(const CameraParameters& params)
 CameraParameters MotoCameraWrapper::getParameters() const
 {
     CameraParameters ret = mMotoInterface->getParameters();
-    if (mCameraType == DEFY_GREEN) {
-        /* the original zoom ratio string is '100,200,300,400,500,600',
-           but 500 and 600 are broken for the SOC camera, so limiting
-           it here */
-        ret.set(CameraParameters::KEY_MAX_ZOOM, "3");
-        ret.set(CameraParameters::KEY_ZOOM_RATIOS, "100,200,300,400");
-    }
 
     /* cut down supported effects to values supported by framework */
-    ret.set(CameraParameters::KEY_SUPPORTED_EFFECTS, "none,mono,sepia,negative,solarize,red-tint,green-tint,blue-tint");
+    ret.set(CameraParameters::KEY_SUPPORTED_EFFECTS,
+            "none,mono,sepia,negative,solarize,red-tint,green-tint,blue-tint");
 
     /* Motorola uses mot-exposure-offset instead of exposure-compensation
        for whatever reason -> adapt the values.
@@ -434,15 +430,29 @@ CameraParameters MotoCameraWrapper::getParameters() const
     ret.set(CameraParameters::KEY_MAX_EXPOSURE_COMPENSATION, "9");
     ret.set(CameraParameters::KEY_MIN_EXPOSURE_COMPENSATION, "-9");
     ret.set(CameraParameters::KEY_EXPOSURE_COMPENSATION_STEP, "0.3333333333333");
-
     ret.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT, CameraParameters::PIXEL_FORMAT_YUV422I);
 
-    if ((mCameraType == DEFY_GREEN) || (mCameraType == DEFY_RED)) {
-        ret.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE,
-                "(1000,30000),(1000,25000),(1000,20000),(1000,24000),(1000,15000),(1000,10000)");
-        ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "1000, 30000");
+    /* Device specific options */
+    switch (mCameraType) {
+        case DEFY_GREEN:
+            /* The original zoom ratio string is '100,200,300,400,500,600',
+             * but 500 and 600 are broken for the SOC camera, so limiting
+             * it here
+             */
+            ret.set(CameraParameters::KEY_MAX_ZOOM, "3");
+            ret.set(CameraParameters::KEY_ZOOM_RATIOS, "100,200,300,400");
+            ret.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE,
+                    "(1000,30000),(1000,25000),(1000,20000),(1000,24000),(1000,15000),(1000,10000)");
+            ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "1000, 30000");
+            break;
+        case DEFY_RED:
+            ret.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE,
+                    "(1000,30000),(1000,25000),(1000,20000),(1000,24000),(1000,15000),(1000,10000)");
+            ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "1000, 30000");
+            break;
+        default:
+            break;
     }
-
     ret.set("cam-mode", mVideoMode ? "1" : "0");
 
     return ret;
