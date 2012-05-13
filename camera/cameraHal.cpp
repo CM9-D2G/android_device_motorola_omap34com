@@ -393,11 +393,10 @@ void camera_enable_msg_type(struct camera_device *device, int32_t msg_type)
 void camera_disable_msg_type(struct camera_device *device, int32_t msg_type)
 {
     legacy_camera_device *lcdev = (legacy_camera_device*) device;
+    lcdev->hwif->disableMsgType(msg_type);
 
     if (msg_type == CAMERA_MSG_VIDEO_FRAME)
          releaseCameraFrames(lcdev);
-
-    lcdev->hwif->disableMsgType(msg_type);
 }
 
 int camera_msg_type_enabled(struct camera_device *device, int32_t msg_type)
