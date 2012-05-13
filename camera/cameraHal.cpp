@@ -30,6 +30,8 @@
 #include <vector>
 #include <ctype.h>
 
+
+static int numAllocFrames = 0;
 #define CLAMP(x, l, h)  (((x) > (h)) ? (h) : (((x) < (l)) ? (l) : (x)))
 #define CAMHAL_GRALLOC_USAGE GRALLOC_USAGE_HW_TEXTURE | \
 			     GRALLOC_USAGE_HW_RENDER | \
@@ -258,6 +260,7 @@ void CameraHAL_DataTSCb(nsecs_t timestamp, int32_t msg_type,
         return;
     }
 
+    numAllocFrames++;
     mem = GenClientData(dataPtr, lcdev);
     if (mem) {
         lcdev->sentFrames.push_back(mem);
@@ -431,6 +434,7 @@ int camera_store_meta_data_in_buffers(struct camera_device *device, int enable)
 int camera_start_recording(struct camera_device *device)
 {
     legacy_camera_device *lcdev = (legacy_camera_device*) device;
+    numAllocFrames = 0;
     return lcdev->hwif->startRecording();
 }
 
@@ -459,6 +463,7 @@ void camera_release_recording_frame(struct camera_device *device,
         camera_memory_t *mem = *it;
         if (mem->data == opaque) {
             mem->release(mem);
+            numAllocFrames--;
             lcdev->sentFrames.erase(it);
             break;
         }
