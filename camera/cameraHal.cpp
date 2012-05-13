@@ -32,6 +32,7 @@
 
 
 static int numAllocFrames = 0;
+const int FRAME_ALLOC_THRESHOLD = 10;
 #define CLAMP(x, l, h)  (((x) > (h)) ? (h) : (((x) < (l)) ? (l) : (x)))
 #define CAMHAL_GRALLOC_USAGE GRALLOC_USAGE_HW_TEXTURE | \
 			     GRALLOC_USAGE_HW_RENDER | \
@@ -254,6 +255,9 @@ void CameraHAL_DataTSCb(nsecs_t timestamp, int32_t msg_type,
 {
     legacy_camera_device *lcdev = (legacy_camera_device *) user;
     camera_memory_t *mem = NULL;
+
+    if (numAllocFrames > FRAME_ALLOC_THRESHOLD)
+        lcdev->hwif->releaseRecordingFrame(dataPtr);
 
     if (lcdev->data_timestamp_callback == NULL ||
         lcdev->request_memory == NULL) {
