@@ -56,6 +56,9 @@ BOARD_USE_YUV422I_DEFAULT_COLORFORMAT := true
 GL_OES_compressed_ETC1_RGB8_texture := true
 BOARD_USES_OVERLAY := true
 USE_OPENGL_RENDERER := true
+# Required for videos (youtube)
+BOARD_WITHOUT_PIXEL_FORMAT_YV12 := true
+BOARD_CUSTOM_OMX_16BPP_YUV := 27
 
 # Recovery
 BOARD_HAS_LOCKED_BOOTLOADER := true
