@@ -32,7 +32,6 @@ PRODUCT_AAPT_PREF_CONFIG := hdpi
 
 # Camera
 PRODUCT_PACKAGES := \
-	overlay.omap3 \
 	camera.omap3 \
 	hwcomposer.default \
 	libcamera \
