@@ -353,14 +353,6 @@ def WriteFullOTAPackage(input_zip, output_zip):
   script.Print("      Jonman409      ")
   script.Print("                     ")
 
-# kernel check...
-#  script.Print(" Checking Kernel Version...  ")
-#  script.Print(" If install aborts here make ")
-#  script.Print(" sure you are on the OTA and ")
-#  script.Print(" not the original GB Leak! ")
-#  script.Print("  ")
-#  script.AssertKernelVersion()
-
 #  AppendAssertions(script, input_zip)
 #  device_specific.FullOTA_Assertions()
   if OPTIONS.backuptool:
@@ -376,20 +368,16 @@ def WriteFullOTAPackage(input_zip, output_zip):
   script.Print(" Formatting /system... ")
   script.RunFormatAndTuneSystem()
   
-  script.Print("  ")
   script.Print(" Mounting /system... ")
   script.Mount("/system")
 
-  script.Print("  ")
   script.Print(" Installing /system... ")
   script.UnpackPackageDir("system", "/system")
   symlinks = CopySystemFiles(input_zip, output_zip)
 
-  script.Print("  ")
   script.Print(" Creating Symlinks... ")
   script.MakeSymlinks(symlinks)
   
-  script.Print("  ")
   script.Print(" Setting Permissions... ")
   Item.GetMetadata(input_zip)
   Item.Get("system").SetPermissions(script)
@@ -406,13 +394,10 @@ def WriteFullOTAPackage(input_zip, output_zip):
 
   script.RunVerifyCachePartitionSize()
   
-  script.Print("  ")
   script.Print(" Finishing Installation... ")
   script.Mount("/data")
   script.RunFinalReleaseUtils()
 
-  script.ShowProgress(0.2, 10)
-  
   script.ShowProgress(0.1, 0)
   device_specific.FullOTA_InstallEnd()
 
