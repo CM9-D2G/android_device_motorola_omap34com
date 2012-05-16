@@ -97,6 +97,7 @@ PRODUCT_PACKAGES += \
 	LiveWallpapers \
 	LiveWallpapersPicker \
 	VisualizationWallpapers \
+	MagicSmokeWallpapers \
 	librs_jni
 
 # Themes
