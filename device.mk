@@ -32,7 +32,7 @@ PRODUCT_AAPT_PREF_CONFIG := hdpi
 
 # Camera
 PRODUCT_PACKAGES := \
-	Camera camera.omap3 libcamera
+	Camera camera.omap3 libcamera \
 	hwcomposer.default libui
 
 # Modem
