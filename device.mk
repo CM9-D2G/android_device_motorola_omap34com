@@ -70,8 +70,10 @@ PRODUCT_PACKAGES += \
 
 # Wifi
 PRODUCT_PACKAGES += \
-	libCustomWifi \
-	wlan_loader
+	iwmulticall hostap wlan_loader wlan_cu wpa_supplicant \
+	libhostapdcli libCustomWifi libwpa_client libtiOsLib \
+	tiwlan.ini dhcpcd.conf wpa_supplicant.conf hostapd.conf \
+	tiap_loader tiap_cu ndc
 
 # Bluetooth configuration files
 PRODUCT_COPY_FILES += \
