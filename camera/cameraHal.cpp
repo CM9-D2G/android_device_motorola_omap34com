@@ -45,7 +45,7 @@ namespace android {
 static long long mLastPreviewTime = 0;
 static bool mThrottlePreview = false;
 static bool mPreviousVideoFrameDropped = false;
-static int mNumAllocFrames = 0;
+static int mNumVideoFramesDropped = 0;
 
 /* When the media encoder is not working fast enough,
    the number of allocated but yet unreleased frames
@@ -61,9 +61,9 @@ static int mNumAllocFrames = 0;
    If the number gets even over the HARD_DROP_THRESHOLD, drop the frames
    without further conditions. */
 
-const int PREVIEW_THROTTLE_THRESHOLD = 8;
-const int SOFT_DROP_THRESHOLD = 14;
-const int HARD_DROP_THRESHOLD = 18;
+const unsigned int PREVIEW_THROTTLE_THRESHOLD = 6;
+const unsigned int SOFT_DROP_THRESHOLD = 12;
+const unsigned int HARD_DROP_THRESHOLD = 15;
 
 struct legacy_camera_device {
     camera_device_t device;
@@ -296,19 +296,23 @@ void CameraHAL_DataTSCb(nsecs_t timestamp, int32_t msg_type,
 {
     legacy_camera_device *lcdev = (legacy_camera_device *) user;
     camera_memory_t *mem = NULL;
+    int framesSent = 0;
 
     LOGV("%s: timestamp:%lld msg_type:%d user:%p",
          __FUNCTION__, timestamp /1000, msg_type, user);
 
-    if (mNumAllocFrames > PREVIEW_THROTTLE_THRESHOLD) {
+    framesSent = lcdev->sentFrames.size();
+    if (framesSent > PREVIEW_THROTTLE_THRESHOLD) {
         mThrottlePreview = true;
         LOGV("%s: preview throttled (fr. queued/throttle thres.: %d/%d)",
-             __FUNCTION__, mNumAllocFrames, PREVIEW_THROTTLE_THRESHOLD);
-        if ((!mPreviousVideoFrameDropped && mNumAllocFrames > SOFT_DROP_THRESHOLD) ||
-             mNumAllocFrames > HARD_DROP_THRESHOLD) {
+             __FUNCTION__, framesSent, PREVIEW_THROTTLE_THRESHOLD);
+        if ((mPreviousVideoFrameDropped == false && framesSent > SOFT_DROP_THRESHOLD) ||
+             framesSent > HARD_DROP_THRESHOLD)
+        {
             LOGW("Frame has to be dropped! (fr. queued/soft thres./hard thres.: %d/%d/%d)",
-                 mNumAllocFrames, SOFT_DROP_THRESHOLD, HARD_DROP_THRESHOLD);
+                 framesSent, SOFT_DROP_THRESHOLD, HARD_DROP_THRESHOLD);
             mPreviousVideoFrameDropped = true;
+            mNumVideoFramesDropped++;
             lcdev->hwif->releaseRecordingFrame(dataPtr);
             return;
         }
@@ -323,9 +327,8 @@ void CameraHAL_DataTSCb(nsecs_t timestamp, int32_t msg_type,
 
     mem = GenClientData(dataPtr, lcdev);
     if (mem != NULL) {
-        mNumAllocFrames++;
         mPreviousVideoFrameDropped = false;
-        LOGV("%s: Posting data to client timestamp:%lld, alloc frames:%d", __FUNCTION__, systemTime());
+        LOGV("%s: Posting data to client timestamp:%lld", __FUNCTION__, systemTime());
         lcdev->sentFrames.push_back(mem);
         lcdev->data_timestamp_callback(timestamp, msg_type, mem, 0, lcdev->user);
         lcdev->hwif->releaseRecordingFrame(dataPtr);
@@ -359,7 +362,6 @@ static void releaseCameraFrames(legacy_camera_device *lcdev)
         camera_memory_t *mem = *it;
         LOGV("%s: releasing mem->data:%p", __FUNCTION__, mem->data);
         mem->release(mem);
-        lcdev->sentFrames.erase(it);
     }
     lcdev->sentFrames.clear();
 }
@@ -472,11 +474,11 @@ void camera_disable_msg_type(struct camera_device *device, int32_t msg_type)
 {
     legacy_camera_device *lcdev = (legacy_camera_device*) device;
     LOGV("%s: msg_type:%d\n", __FUNCTION__, msg_type);
-    lcdev->hwif->disableMsgType(msg_type);
     if (msg_type == CAMERA_MSG_VIDEO_FRAME) {
         LOGV("%s: releasing stale video frames", __FUNCTION__);
         releaseCameraFrames(lcdev);
     }
+    lcdev->hwif->disableMsgType(msg_type);
 }
 
 int camera_msg_type_enabled(struct camera_device *device, int32_t msg_type)
@@ -521,6 +523,7 @@ int camera_start_recording(struct camera_device *device)
 void camera_stop_recording(struct camera_device *device)
 {
     legacy_camera_device *lcdev = (legacy_camera_device*) device;
+    LOGI("%s: Number of frames dropped by CameraHAL: %d", __FUNCTION__, mNumVideoFramesDropped);
     mThrottlePreview = false;
     lcdev->hwif->stopRecording();
 }
@@ -548,7 +551,6 @@ void camera_release_recording_frame(struct camera_device *device,
             LOGV("%s: found, removing", __FUNCTION__);
             mem->release(mem);
             lcdev->sentFrames.erase(it);
-            mNumAllocFrames--;
             break;
         }
     }
