@@ -514,7 +514,7 @@ int camera_store_meta_data_in_buffers(struct camera_device *device, int enable)
 int camera_start_recording(struct camera_device *device)
 {
     legacy_camera_device *lcdev = (legacy_camera_device*) device;
-    mNumAllocFrames = 0;
+    mNumVideoFramesDropped = 0;
     mPreviousVideoFrameDropped = false;
     mThrottlePreview = false;
     return lcdev->hwif->startRecording();
