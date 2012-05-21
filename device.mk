@@ -47,15 +47,17 @@ PRODUCT_PACKAGES += \
 PRODUCT_PACKAGES += \
 	libEGL libGLESv2 libGLESv1_CM
 
-# for jpeg hw encoder/decoder
+# Jpeg hw encoder/decoder
 PRODUCT_PACKAGES += \
 	libskiahw libstagefrighthw \
 	libOMX.TI.JPEG.Encoder libOMX.TI.JPEG.decoder \
 
+# DSP
+PRODUCT_PACKAGES += \
+	cexec.out libbridge
+
 # OMX
 PRODUCT_PACKAGES += \
-	dspexec \
-	libbridge \
 	libLCML \
 	libOMX_Core \
 	libOMX.TI.AAC.decode \
