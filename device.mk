@@ -84,7 +84,7 @@ PRODUCT_COPY_FILES += \
 PRODUCT_PACKAGES += mot_boot_mode charge_only_mode
 
 # Apps and bin
-PRODUCT_PACKAGES += Superuser su FileManager Torch Usb
+PRODUCT_PACKAGES += Superuser su FileManager Torch Usb Apollo
 
 # Live Wallpapers
 PRODUCT_PACKAGES += \
