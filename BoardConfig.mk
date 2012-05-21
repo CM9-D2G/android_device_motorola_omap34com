@@ -97,8 +97,12 @@ ENABLE_SENSORS_COMPAT := true
 BOARD_OVERLAY_BASED_CAMERA_HAL := true
 
 # OMX
+OMX_JPEG := true
 HARDWARE_OMX := true
 OMX_VENDOR := ti
+OMX_VENDOR_INCLUDES := \
+   hardware/ti/omx/system/src/openmax_il/omx_core/inc \
+   hardware/ti/omx/image/src/openmax_il/jpeg_enc/inc
 OMX_VENDOR_WRAPPER := TI_OMX_Wrapper
 BOARD_OPENCORE_LIBRARIES := libOMX_Core
 BOARD_OPENCORE_FLAGS := -DHARDWARE_OMX=1
