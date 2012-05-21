@@ -44,7 +44,9 @@ PRODUCT_PACKAGES += \
 	radiooptions
 
 # ICS graphics
-PRODUCT_PACKAGES += libGLESv2 libEGL libGLESv1_CM
+PRODUCT_PACKAGES += \
+	libEGL libion \
+	libGLESv2 libGLESv1_CM
 
 # for jpeg hw encoder/decoder
 PRODUCT_PACKAGES += \
