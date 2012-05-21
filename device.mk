@@ -45,8 +45,7 @@ PRODUCT_PACKAGES += \
 
 # ICS graphics
 PRODUCT_PACKAGES += \
-	libEGL libion \
-	libGLESv2 libGLESv1_CM
+	libEGL libGLESv2 libGLESv1_CM
 
 # for jpeg hw encoder/decoder
 PRODUCT_PACKAGES += \
