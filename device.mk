@@ -49,7 +49,7 @@ PRODUCT_PACKAGES += \
 
 # Jpeg hw encoder/decoder
 PRODUCT_PACKAGES += \
-	libskiahw libstagefrighthw \
+	libstagefrighthw \
 	libOMX.TI.JPEG.Encoder libOMX.TI.JPEG.decoder \
 
 # DSP
