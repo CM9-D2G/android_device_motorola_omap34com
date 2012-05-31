@@ -69,6 +69,8 @@ $SED -i \
 	-e '/ro\.build\.type/s/eng/user/' \
 	$REPACK/ota/system/build.prop
 
+# Rename hostap to hostapd
+mv $REPACK/ota/system/bin/hostap $REPACK/ota/system/bin/hostapd
 
 # Delete unnecessary binaries
 ( cd $REPACK/ota/system/bin; echo $DELETE_BINS | xargs rm -f; )
