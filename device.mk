@@ -170,6 +170,7 @@ PRODUCT_COPY_FILES += \
 	$(DEVICE_PREBUILT)/etc/vold.fstab:system/etc/vold.fstab \
 	$(DEVICE_PREBUILT)/etc/sysctl.conf:system/etc/sysctl.conf \
 	$(DEVICE_PREBUILT)/etc/init.d/00adb_during_boot:system/etc/init.d/00adb_during_boot \
+	$(DEVICE_PREBUILT)/etc/init.d/05mountsd:system/etc/init.d/05mountsd \
 	$(DEVICE_PREBUILT)/etc/init.d/12scheduler:system/etc/init.d/12scheduler \
 	$(DEVICE_PREBUILT)/etc/init.d/13kernel:system/etc/init.d/13kernel \
 	$(DEVICE_PREBUILT)/etc/init.d/14multitouch:system/etc/init.d/14multitouch \
