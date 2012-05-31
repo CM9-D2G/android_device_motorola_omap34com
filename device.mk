@@ -232,6 +232,10 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	dalvik.vm.checkjni=false \
 	com.ti.omap_compat=1
 
+ifdef OMAP_ENHANCEMENT
+PRODUCT_PROPERTY_OVERRIDES += com.ti.omap_enhancement=true
+endif
+
 # we have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
 
