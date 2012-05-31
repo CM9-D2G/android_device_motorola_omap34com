@@ -1,9 +1,8 @@
 #!/system/bin/sh
 
 # options: 'noop cfq sio'
-SCHED="noop"
+SCHED="sio"
 
-insmod /system/lib/modules/sio-iosched.ko
 for i in /sys/block/*/queue; do
     if [ -f "\$i/scheduler" ]; then echo "$SCHED" > \$i/scheduler; fi;
     if [ -f "\$i/rotational" ] && [ "\`cat \$i/rotational\`" -ne 0 ]; then echo "0" > \$i/rotational; fi;
