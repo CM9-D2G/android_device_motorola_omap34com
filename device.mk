@@ -86,7 +86,7 @@ PRODUCT_COPY_FILES += \
 	system/bluetooth/data/main.conf:system/etc/bluetooth/main.conf
 
 # Core
-PRODUCT_PACKAGES += mot_boot_mode charge_only_mode lights.omap3
+PRODUCT_PACKAGES += mot_boot_mode charge_only_mode lights.omap3 e2fsck
 
 # Apps and bin
 PRODUCT_PACKAGES += Superuser su FileManager Torch Usb Apollo
