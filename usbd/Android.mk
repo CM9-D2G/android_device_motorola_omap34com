@@ -6,8 +6,7 @@ LOCAL_SRC_FILES := \
         usbd.c
 
 LOCAL_MODULE_TAGS := optional
-LOCAL_MODULE := usbd.omap3
-LOCAL_MODULE_STEM := usbd
+LOCAL_MODULE := usbd
 
 LOCAL_SHARED_LIBRARIES := libcutils libc
 
