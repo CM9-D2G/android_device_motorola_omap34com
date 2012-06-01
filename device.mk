@@ -100,7 +100,7 @@ PRODUCT_PACKAGES += \
 	librs_jni
 
 # Themes
-PRODUCT_PACKAGES += ThemeChooser Androidian
+PRODUCT_PACKAGES += ThemeChooser
 
 # Key Layouts
 PRODUCT_COPY_FILES := \
