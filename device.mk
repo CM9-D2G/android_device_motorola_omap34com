@@ -205,6 +205,10 @@ PRODUCT_COPY_FILES += \
 	$(DEVICE_PREBUILT)/bin/hijack:system/bin/hijack \
 	$(DEVICE_PREBUILT)/bin/hijack.log_dump:system/bin/hijack.log_dump \
 
+# HWUI Blacklist
+PRODUCT_COPY_FILES += \
+	device/motorola/omap34com/hwui-blacklist.txt:system/hwui-blacklist.txt
+
 # Copy all common kernel modules
 PRODUCT_COPY_FILES += $(shell \
 	find device/motorola/omap34com/modules -name '*.ko' \

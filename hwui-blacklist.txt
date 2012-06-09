@@ -1,0 +1,9 @@
+com.android.vending
+com.tmobile.themechooser
+com.bel.android.dspmanager
+com.android.mms
+com.android.settings
+com.google.android.talk
+com.google.android.youtube
+com.android.wallpaper.livepicker
+mobi.mgeek.TunnyBrowser
