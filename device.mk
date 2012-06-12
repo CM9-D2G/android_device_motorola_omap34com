@@ -91,7 +91,7 @@ PRODUCT_PACKAGES += \
 	lights.omap3 e2fsck usbd
 
 # Apps and bin
-PRODUCT_PACKAGES += Superuser su FileManager Torch Usb Apollo
+PRODUCT_PACKAGES += Superuser su FileManager Torch Usb Apollo GanOptimizer
 
 # Live Wallpapers
 PRODUCT_PACKAGES += \
