@@ -108,6 +108,8 @@ sp<MotoCameraWrapper> MotoCameraWrapper::createInstance(int cameraId)
         type = DROID2;
     } else if (strcmp(motodevice, "droid2we") == 0) {
         type = DROID2WE;
+    } else if (strcmp(motodevice, "venus2") == 0) {
+        type = DROIDPRO;
     } else if (strcmp(motodevice, "jordan") == 0) {
         if (deviceCardMatches("/dev/video3", "camise")) {
             type = DEFY_GREEN;
@@ -121,6 +123,7 @@ sp<MotoCameraWrapper> MotoCameraWrapper::createInstance(int cameraId)
         case DROIDX:
         case DROID2:
         case DROID2WE:
+        case DROIDPRO:
             motoInterface = openMotoInterface("libcamera.so", "_ZN7android9CameraHal14createInstanceEv");
             break;
         case DEFY_RED:

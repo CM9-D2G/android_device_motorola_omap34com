@@ -52,6 +52,7 @@ private:
         DROIDX,
         DROID2,
         DROID2WE
+        DROIDPRO
     } CameraType;
 
     class TorchEnableThread : public Thread {
