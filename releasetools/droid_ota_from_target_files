@@ -366,7 +366,7 @@ def WriteFullOTAPackage(input_zip, output_zip):
   CopyUtilityFiles(input_zip, output_zip)
 
   script.Print(" Formatting /system... ")
-  script.FormatPartition("/system")
+  script.RunFormatAndTuneSystem()
   
   script.Print(" Mounting /system... ")
   script.Mount("/system")
