@@ -51,7 +51,7 @@ private:
         DEFY_RED,
         DROIDX,
         DROID2,
-        DROID2WE
+        DROID2WE,
         DROIDPRO
     } CameraType;
 
