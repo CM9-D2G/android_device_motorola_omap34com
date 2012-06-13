@@ -45,7 +45,7 @@ PRODUCT_PACKAGES += \
 
 # ICS graphics
 PRODUCT_PACKAGES += \
-	libEGL libGLESv2 libGLESv1_CM
+	libEGL libGLESv2 libGLESv1_CM libgtest
 ifdef OMAP_ENHANCEMENT
 PRODUCT_PACKAGES += += hwcomposer.omap3
 endif
