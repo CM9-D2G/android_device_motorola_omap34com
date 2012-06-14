@@ -47,6 +47,7 @@ endif
 # Graphics
 BOARD_EGL_CFG := device/motorola/omap34com/prebuilt/etc/egl.cfg
 COMMON_GLOBAL_CFLAGS += -DOMAP_COMPAT -DBINDER_COMPAT
+BOARD_WITHOUT_HW_COMPOSER := true
 TARGET_MISSING_EGL_EXTERNAL_IMAGE := true
 BOARD_NO_RGBX_8888 := true
 DEFAULT_FB_NUM := 0
