@@ -3,5 +3,4 @@
 if [ "$(getprop com.ti.omap_enhancement)" == "true" ]; then
 	busybox insmod /system/lib/modules/ionpvr.ko
 	busybox insmod /system/lib/modules/ion.ko
-	cat /proc/pvr/nodes
 fi
