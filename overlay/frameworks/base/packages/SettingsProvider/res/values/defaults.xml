@@ -19,6 +19,8 @@
 <resources>
     <bool name="def_screen_brightness_automatic_mode">true</bool>
     <integer name="def_lockscreen_sounds_enabled">0</integer>
+    <!-- 0 == default, 1 == never while plugged, 2 == never -->
+    <integer name="def_wifi_sleep_policy">1</integer>
     <!-- Default for UI touch sounds enabled -->
     <bool name="def_sound_effects_enabled">false</bool>
 </resources>
