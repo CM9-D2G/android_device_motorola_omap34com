@@ -1,4 +1,5 @@
 com.android.browser
 com.android.chrome
+com.android.deskclock
 com.android.gallery3d
 com.google.android.apps.maps
