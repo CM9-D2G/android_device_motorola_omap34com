@@ -2,5 +2,4 @@ com.android.browser
 com.android.chrome
 com.android.deskclock
 com.android.gallery3d
-com.dolphin.browser.lab.en
 com.google.android.apps.maps
