@@ -144,3 +144,6 @@ TARGET_BOOTANIMATION_TEXTURE_CACHE := true
 
 # TESTING
 TARGET_USE_SCORPION_BIONIC_OPTIMIZATION := true
+
+# customize the malloced address to be 16-byte aligned
+BOARD_MALLOC_ALIGNMENT := 16
