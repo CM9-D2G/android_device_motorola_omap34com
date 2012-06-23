@@ -9,7 +9,7 @@ alias ll='busybox ls -al --color=auto'
 
 alias sysro='busybox mount -o remount,ro /system'
 alias sysrw='busybox mount -o remount,rw /system'
-
+alias vim='busybox vi'
 alias rootro='busybox mount -o remount,ro /'
 alias rootrw='busybox mount -o remount,rw /'
 
