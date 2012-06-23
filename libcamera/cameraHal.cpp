@@ -1,9 +1,6 @@
-/*
- * Copyright (C) 2012, rondoval (ms2), Epsylon3 (defy)
- * Copyright (C) 2012, Won-Kyu Park
- * Copyright (C) 2012, Raviprasad V Mummidi
- * Copyright (C) 2011, Ivan Zupan
- * Copyright (C) 2012, JB1tz
+/* vim:et:sts=4:sw=4
+ *
+ * Copyright (C) 2012, The Android Open Source Project
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,21 +17,28 @@
 
 #define LOG_TAG "CameraHAL"
 //#define LOG_NDEBUG 0
-#define LOG_FULL_PARAMS
+//#define LOG_FULL_PARAMS
+//#define LOG_EACH_FRAME
 
-#include <hardware/camera.h>
-#include <ui/Overlay.h>
 #include <binder/IMemory.h>
+#include <hardware/camera.h>
 #include <hardware/gralloc.h>
+#include <camera/Overlay.h>
 #include <utils/Errors.h>
 #include <vector>
 #include <ctype.h>
 
 #define CLAMP(x, l, h)  (((x) > (h)) ? (h) : (((x) < (l)) ? (l) : (x)))
-#define CAMHAL_GRALLOC_USAGE GRALLOC_USAGE_HW_TEXTURE | \
-			     GRALLOC_USAGE_HW_RENDER | \
-			     GRALLOC_USAGE_SW_READ_RARELY | \
-			     GRALLOC_USAGE_SW_WRITE_NEVER
+#define USAGE_WIN \
+    (GRALLOC_USAGE_SW_WRITE_OFTEN | GRALLOC_USAGE_SW_READ_OFTEN)
+#define USAGE_BUF \
+    (GRALLOC_USAGE_SW_WRITE_OFTEN | GRALLOC_USAGE_HW_TEXTURE | GRALLOC_USAGE_HW_RENDER)
+
+#ifdef LOG_EACH_FRAME
+# define LOGVF(...) LOGV(__VA_ARGS__)
+#else
+# define LOGVF(...)
+#endif
 
 using namespace std;
 
@@ -173,6 +177,7 @@ static void processPreviewData(char *frame, size_t size,
     void *vaddr;
     int ret;
 
+    LOGVF("%s: frame=%p, size=%d, lcdev=%p", __FUNCTION__, frame, size, lcdev);
     if (lcdev->window == NULL) {
         return;
     }
@@ -191,7 +196,7 @@ static void processPreviewData(char *frame, size_t size,
         return;
     }
 
-    ret = lcdev->gralloc->lock(lcdev->gralloc, *bufHandle, CAMHAL_GRALLOC_USAGE,
+    ret = lcdev->gralloc->lock(lcdev->gralloc, *bufHandle, USAGE_BUF,
                              0, 0, lcdev->previewWidth, lcdev->previewHeight,
                              &vaddr);
     if (ret != NO_ERROR) {
@@ -419,7 +424,7 @@ int camera_set_preview_window(struct camera_device *device,
     LOGD("%s: preview format %s", __FUNCTION__, previewFormat);
     lcdev->previewFormat = Overlay::getFormatFromString(previewFormat);
 
-    if (window->set_usage(window, CAMHAL_GRALLOC_USAGE)) {
+    if (window->set_usage(window, USAGE_WIN)) {
         LOGE("%s: could not set usage on gralloc buffer", __FUNCTION__);
         return -1;
     }
