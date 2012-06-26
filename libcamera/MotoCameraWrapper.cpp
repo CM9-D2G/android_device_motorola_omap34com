@@ -156,8 +156,16 @@ MotoCameraWrapper::MotoCameraWrapper(sp<CameraHardwareInterface>& motoInterface,
     mDataCbTimestamp(NULL),
     mCbUserData(NULL)
 {
-    if (type == DEFY_GREEN)
+    if (type == DEFY_GREEN) {
         mTorchThread = new TorchEnableThread(this);
+        /*
+         * The camera lib initializes focus-mode with the value 'on', which is not in its
+         * own focus-mode-values list :-(
+         */
+        CameraParameters params = motoInterface->getParameters();
+        params.set(CameraParameters::KEY_FOCUS_MODE, CameraParameters::FOCUS_MODE_AUTO);
+        motoInterface->setParameters(params);
+    }
 }
 
 MotoCameraWrapper::~MotoCameraWrapper()
@@ -172,8 +180,9 @@ MotoCameraWrapper::~MotoCameraWrapper()
 void
 MotoCameraWrapper::toggleTorchIfNeeded()
 {
-    if (mCameraType == DEFY_GREEN)
+    if (mCameraType == DEFY_GREEN) {
         setSocTorchMode(mFlashMode == CameraParameters::FLASH_MODE_TORCH);
+    }
 }
 
 sp<IMemoryHeap> MotoCameraWrapper::getPreviewHeap() const
@@ -196,14 +205,17 @@ void MotoCameraWrapper::setCallbacks(notify_callback notify_cb,
     mDataCbTimestamp = data_cb_timestamp;
     mCbUserData = user;
 
-    if (mNotifyCb != NULL)
+    if (mNotifyCb != NULL) {
         notify_cb = &MotoCameraWrapper::notifyCb;
+    }
 
-    if (mDataCb != NULL)
+    if (mDataCb != NULL) {
         data_cb = &MotoCameraWrapper::dataCb;
+    }
 
-    if (mDataCbTimestamp != NULL)
+    if (mDataCbTimestamp != NULL) {
         data_cb_timestamp = &MotoCameraWrapper::dataCbTimestamp;
+    }
 
     mMotoInterface->setCallbacks(notify_cb, data_cb, data_cb_timestamp, this);
 }
@@ -213,8 +225,9 @@ void MotoCameraWrapper::notifyCb(int32_t msgType, int32_t ext1, int32_t ext2, vo
     MotoCameraWrapper *_this = (MotoCameraWrapper *) user;
     user = _this->mCbUserData;
 
-    if (msgType == CAMERA_MSG_FOCUS)
+    if (msgType == CAMERA_MSG_FOCUS) {
         _this->toggleTorchIfNeeded();
+    }
 
     _this->mNotifyCb(msgType, ext1, ext2, user);
 }
@@ -224,8 +237,9 @@ void MotoCameraWrapper::dataCb(int32_t msgType, const sp<IMemory>& dataPtr, void
     MotoCameraWrapper *_this = (MotoCameraWrapper *) user;
     user = _this->mCbUserData;
 
-    if (msgType == CAMERA_MSG_COMPRESSED_IMAGE)
+    if (msgType == CAMERA_MSG_COMPRESSED_IMAGE) {
         _this->fixUpBrokenGpsLatitudeRef(dataPtr);
+    }
 
     _this->mDataCb(msgType, dataPtr, user);
 
@@ -377,20 +391,21 @@ status_t MotoCameraWrapper::setParameters(const CameraParameters& params)
     bool isWide;
 
     /*
-     * getInt returns -1 if the value isn't present and 0 on parse failure,
-     * so if it's larger than 0, we can be sure the value was parsed properly
+     * getInt returns -1 if the value isn't present and 0 on parse failure
      */
-    mVideoMode = pars.getInt("cam-mode") > 0;
+    mVideoMode = pars.getInt("cam-mode") == 0;
     pars.remove("cam-mode");
 
     pars.getPreviewSize(&width, &height);
     isWide = width == 848 && height == 480;
 
-    if (isWide && !mVideoMode)
+    if (isWide && !mVideoMode) {
         pars.setPreviewFrameRate(24);
+    }
 
-    if (mCameraType == DEFY_RED && mVideoMode)
+    if (mCameraType == DEFY_RED && mVideoMode) {
         pars.setPreviewFrameRate(24);
+    }
 
     sceneMode = pars.get(CameraParameters::KEY_SCENE_MODE);
     if (sceneMode != CameraParameters::SCENE_MODE_AUTO) {
@@ -411,7 +426,8 @@ status_t MotoCameraWrapper::setParameters(const CameraParameters& params)
 
     mFlashMode = pars.get(CameraParameters::KEY_FLASH_MODE);
     float exposure = pars.getFloat(CameraParameters::KEY_EXPOSURE_COMPENSATION);
-    /* Exposure-compensation comes multiplied in the -9...9 range, while
+    /*
+     * Exposure-compensation comes multiplied in the -9...9 range, while
      * we need it in the -3...3 range -> adjust for that
      */
     exposure /= 3;
@@ -457,7 +473,8 @@ CameraParameters MotoCameraWrapper::getParameters() const
     /* Device specific options */
     switch (mCameraType) {
         case DEFY_GREEN:
-            /* The original zoom ratio string is '100,200,300,400,500,600',
+            /*
+             * The original zoom ratio string is '100,200,300,400,500,600',
              * but 500 and 600 are broken for the SOC camera, so limiting
              * it here
              */
