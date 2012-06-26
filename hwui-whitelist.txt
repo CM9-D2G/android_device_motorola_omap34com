@@ -1,3 +1,4 @@
+com.adobe.flashplayer
 com.android.browser
 com.android.chrome
 com.android.deskclock
