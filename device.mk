@@ -45,7 +45,7 @@ PRODUCT_PACKAGES += \
 
 # ICS graphics
 PRODUCT_PACKAGES += \
-	libEGL libGLESv2 libGLESv1_CM libgtest
+	libEGL libGLESv2 libGLESv1_CM
 
 # Jpeg hw encoder/decoder
 PRODUCT_PACKAGES += \
