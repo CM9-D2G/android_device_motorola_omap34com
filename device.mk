@@ -244,7 +244,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	ro.sf.lcd_density=240 \
 	ro.min_pointer_dur=10 \
 	ro.opengles.version=131072 \
-	hwui.render_dirty_regions=false \
 	wifi.interface=tiwlan0 \
 	wifi.supplicant_scan_interval=180 \
 	wifi.hotspot.ti=1 \
