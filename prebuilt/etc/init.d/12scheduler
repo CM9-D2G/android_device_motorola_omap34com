@@ -4,14 +4,14 @@
 SCHED="sio"
 
 for i in /sys/block/*/queue; do
-    if [ -f "\$i/scheduler" ]; then echo "$SCHED" > \$i/scheduler; fi;
-    if [ -f "\$i/rotational" ] && [ "\`cat \$i/rotational\`" -ne 0 ]; then echo "0" > \$i/rotational; fi;
-    if [ -f "\$i/iosched/low_latency" ]; then echo "1" > \$i/iosched/low_latency; fi;
-    if [ -f "\$i/iosched/back_seek_penalty" ]; then echo "1" > \$i/iosched/back_seek_penalty; fi;
-    if [ -f "\$i/iosched/back_seek_max" ]; then echo "1000000000" > \$i/iosched/back_seek_max; fi;
-    if [ -f "\$i/iosched/slice_idle" ]; then echo "0" > \$i/iosched/slice_idle; fi;
-    if [ -f "\$i/iosched/fifo_batch" ]; then echo "1" > \$i/iosched/fifo_batch; fi;
-    if [ -f "\$i/iosched/quantum" ]; then echo "16" > \$i/iosched/quantum; fi;
-    if [ -f "\$i/nr_requests" ]; then echo "512" > \$i/nr_requests; fi;
-    if [ -f "\$i/iostats" ] && [ "\`cat \$i/iostats\`" -ne 0 ]; then echo "0" > \$i/iostats; fi;
+    if [ -f "$i/scheduler" ]; then echo "$SCHED" > $i/scheduler; fi;
+    if [ -f "$i/rotational" ]; then echo "0" > $i/rotational; fi;
+    if [ -f "$i/iosched/low_latency" ]; then echo "1" > $i/iosched/low_latency; fi;
+    if [ -f "$i/iosched/back_seek_penalty" ]; then echo "1" > $i/iosched/back_seek_penalty; fi;
+    if [ -f "$i/iosched/back_seek_max" ]; then echo "1000000000" > $i/iosched/back_seek_max; fi;
+    if [ -f "$i/iosched/slice_idle" ]; then echo "0" > $i/iosched/slice_idle; fi;
+    if [ -f "$i/iosched/fifo_batch" ]; then echo "1" > $i/iosched/fifo_batch; fi;
+    if [ -f "$i/iosched/quantum" ]; then echo "16" > $i/iosched/quantum; fi;
+    if [ -f "$i/nr_requests" ]; then echo "512" > $i/nr_requests; fi;
+    if [ -f "$i/iostats" ]; then echo "0" > $i/iostats; fi;
 done;
