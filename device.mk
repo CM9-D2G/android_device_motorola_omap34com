@@ -112,7 +112,7 @@ PRODUCT_COPY_FILES := \
 	$(DEVICE_PREBUILT)/usr/keychars/qtouch-touchscreen.kcm:system/usr/keychars/qtouch-touchscreen.kcm \
 	$(DEVICE_PREBUILT)/usr/keychars/sholes-keypad.kcm:system/usr/keychars/sholes-keypad.kcm
 
-# Graphics
+# Graphics (TI SGX DDK 1.8 ES 5.x)
 PRODUCT_COPY_FILES += \
 	$(DEVICE_PREBUILT)/imgtec/pvrsrvinit:system/bin/pvrsrvinit \
 	$(DEVICE_PREBUILT)/imgtec/libEGL_POWERVR_SGX530_125.so:system/lib/egl/libEGL_POWERVR_SGX530_125.so \
@@ -125,6 +125,8 @@ PRODUCT_COPY_FILES += \
 	$(DEVICE_PREBUILT)/imgtec/libpvrANDROID_WSEGL.so:system/lib/libpvrANDROID_WSEGL.so \
 	$(DEVICE_PREBUILT)/imgtec/libsrv_init.so:system/lib/libsrv_init.so \
 	$(DEVICE_PREBUILT)/imgtec/libsrv_um.so:system/lib/libsrv_um.so \
+	$(DEVICE_PREBUILT)/imgtec/libsfutil.so:system/lib/libsfutil.so \
+	$(DEVICE_PREBUILT)/imgtec/libfakehal.so:system/lib/libfakehal.so \
 	$(DEVICE_PREBUILT)/imgtec/libusc.so:system/lib/libusc.so \
 	$(DEVICE_PREBUILT)/imgtec/libeglinfo.so:system/lib/egl/libeglinfo.so \
 	$(DEVICE_PREBUILT)/imgtec/libgles1_texture_stream.so:system/lib/egl/libgles1_texture_stream.so \
