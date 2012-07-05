@@ -1,0 +1,18 @@
+diff --git a/drivers/gpu/pvr/mm.h b/drivers/gpu/pvr/mm.h
+index 7d2da4e..88bb707 100644
+--- a/drivers/gpu/pvr/mm.h
++++ b/drivers/gpu/pvr/mm.h
+@@ -123,6 +123,13 @@ struct _LinuxMemArea {
+             struct page **pvPageList;
+ 	    IMG_HANDLE hBlockPageList;
+         }sPageList;
++#ifdef CONFIG_ION_OMAP
++        struct _sIONTilerAlloc
++        {
++            IMG_CPU_PHYADDR *pCPUPhysAddrs;
++            struct ion_handle *psIONHandle;
++        }sIONTilerAlloc;
++#endif
+         struct _sSubAlloc
+         {
+             
