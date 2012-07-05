@@ -85,7 +85,7 @@ PRODUCT_COPY_FILES += \
 # Core
 PRODUCT_PACKAGES += \
 	mot_boot_mode charge_only_mode \
-	lights.omap3 e2fsck usbd ping6
+	lights.omap3 usbd ping6
 
 # Apps and bin
 PRODUCT_PACKAGES += Superuser su FileManager Torch Usb Apollo GanOptimizer
