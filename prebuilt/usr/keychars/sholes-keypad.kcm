@@ -227,7 +227,7 @@ key TAB {
     label:                              '\t'
     base:                               '\t'
     shift, capslock:                    '\t'
-    alt, shift+alt:                     '~'
+    alt, shift+alt:                     '\u0303'
 }
 
 key SLASH {
