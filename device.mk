@@ -228,11 +228,8 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	wifi.hotspot.ti=1 \
 	wifi.ap.interface=tiap0 \
 	windowsmgr.max_events_per_sec=150 \
-	com.ti.omap_compat=1
-ifdef OMAP_ENHANCEMENT
-PRODUCT_PROPERTY_OVERRIDES += \
+	com.ti.omap_compat=1 \
 	com.ti.omap_enhancement=true
-endif
 
 # we have enough storage space to hold precise GC data
 PRODUCT_TAGS += dalvik.gc.type-precise
