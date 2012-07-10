@@ -166,6 +166,41 @@ static inline void YUV420spToRGB565(char* rgb, char* yuv420sp, int width,
     }
 }
 
+/* from v4l lib */
+static void Yuv422iToYV12(unsigned char *dest, unsigned char *src,
+                          int width, int height, int stride)
+{
+    int i, j;
+    unsigned char *src1;
+    unsigned char *udest, *vdest;
+
+    /* copy the Y values */
+    src1 = src;
+    for (i = 0; i < height; i++) {
+        for (j = 0; j < width; j += 2) {
+            *dest++ = src1[0];
+            *dest++ = src1[2];
+            src1 += 4;
+        }
+    }
+
+    /* copy the U and V values */
+    src1 = src + width * 2;             /* next line */
+    vdest = dest;
+    udest = dest + width * height / 4;
+
+    for (i = 0; i < height; i += 2) {
+        for (j = 0; j < width; j += 2) {
+            *udest++ = ((int) src[1] + src1[1]) / 2;    /* U */
+            *vdest++ = ((int) src[3] + src1[3]) / 2;    /* V */
+            src += 4;
+            src1 += 4;
+        }
+        src = src1;
+        src1 += width * 2;
+    }
+}
+
 /* Overlay hooks */
 static void processPreviewData(char *frame, size_t size,
                                legacy_camera_device *lcdev,
@@ -206,14 +241,11 @@ static void processPreviewData(char *frame, size_t size,
 
     switch (format) {
         case Overlay::FORMAT_YUV422I:
-            YUYVtoRGB565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight, stride);
+            Yuv422iToYV12((unsigned char*)vaddr, (unsigned char*)frame, lcdev->previewWidth,
+                          lcdev->previewHeight, stride);
             break;
-        case Overlay::FORMAT_YUV420P:
         case Overlay::FORMAT_YUV420SP:
-            YUV420spToRGB565((char*)vaddr, frame, lcdev->previewWidth, lcdev->previewHeight, stride);
-            break;
-        case Overlay::FORMAT_RGB565:
-            memcpy(vaddr, frame, size);
+            memcpy(vaddr, frame, lcdev->previewWidth * lcdev->previewHeight * 1.5);
             break;
         default:
             LOGE("%s: Unknown video format, cannot convert!", __FUNCTION__);
@@ -438,7 +470,7 @@ int camera_set_preview_window(struct camera_device *device,
 
     if (window->set_buffers_geometry(window, lcdev->previewWidth,
                                      lcdev->previewHeight,
-                                     HAL_PIXEL_FORMAT_RGB_565)) {
+                                     HAL_PIXEL_FORMAT_YV12)) {
         LOGE("%s: could not set buffers geometry", __FUNCTION__);
         return -1;
     }
