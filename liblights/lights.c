@@ -41,25 +41,16 @@
 static pthread_once_t g_init = PTHREAD_ONCE_INIT;
 static pthread_mutex_t g_lock = PTHREAD_MUTEX_INITIALIZER;
 
-char const*const LCD_FILE
-        = "/sys/class/leds/lcd-backlight/brightness";
-char const*const ALS_FILE
-        = "/sys/class/leds/lcd-backlight/als";
-
-char const*const KEYBOARD_FILE
-        = "/sys/class/leds/keyboard-backlight/brightness";
-char const*const BUTTON_FILE
-        = "/sys/class/leds/button-backlight/brightness";
+char const*const LCD_FILE = "/sys/class/leds/lcd-backlight/brightness";
+char const*const ALS_FILE = "/sys/class/leds/lcd-backlight/als";
+char const*const KEYBOARD_FILE = "/sys/class/leds/keyboard-backlight/brightness";
+char const*const BUTTON_FILE = "/sys/class/leds/button-backlight/brightness";
 
 /*RGB file descriptors */
-char const*const RED_LED_FILE
-        = "/sys/class/leds/red/brightness";
-char const*const RED_BLINK_FILE
-        = "/sys/class/leds/red/blink";
-char const*const GREEN_LED_FILE
-        = "/sys/class/leds/green/brightness";
-char const*const BLUE_LED_FILE
-        = "/sys/class/leds/blue/brightness";
+char const*const RED_LED_FILE = "/sys/class/leds/red/brightness";
+char const*const RED_BLINK_FILE = "/sys/class/leds/red/blink";
+char const*const GREEN_LED_FILE = "/sys/class/leds/green/brightness";
+char const*const BLUE_LED_FILE = "/sys/class/leds/blue/brightness";
 
 static unsigned int colorstate = 0;
 static int blinkstate = 0;
@@ -105,8 +96,9 @@ static int
 rgb_to_brightness(struct light_state_t const* state)
 {
     int color = state->color & 0x00ffffff;
-    return ((77*((color>>16)&0x00ff))
-            + (150*((color>>8)&0x00ff)) + (29*(color&0x00ff))) >> 8;
+    return ((77  * ((color >> 16) &0x00ff)) +
+            (150 * ((color >> 8) &0x00ff)) +
+            (29  * (color & 0x00ff))) >> 8;
 }
 
 static int
@@ -118,7 +110,7 @@ set_light_backlight(struct light_device_t* dev,
 
     int brightness = rgb_to_brightness(state);
 
-    switch(state->brightnessMode) {
+    switch (state->brightnessMode) {
         case BRIGHTNESS_MODE_SENSOR:
             als_mode = AUTOMATIC;
             break;
@@ -144,7 +136,7 @@ set_light_keyboard(struct light_device_t* dev,
     int on = is_lit(state);
 
     pthread_mutex_lock(&g_lock);
-    err = write_int(KEYBOARD_FILE, on ? 255:0);
+    err = write_int(KEYBOARD_FILE, on ? 255 : 0);
     pthread_mutex_unlock(&g_lock);
 
     return err;
@@ -158,11 +150,10 @@ set_light_buttons(struct light_device_t* dev,
     int on = is_lit(state);
 
     pthread_mutex_lock(&g_lock);
-    err = write_int(BUTTON_FILE, on ? 255:0);
+    err = write_int(BUTTON_FILE, on ? 255 : 0);
     pthread_mutex_unlock(&g_lock);
 
     return err;
-
 }
 
 static int
@@ -171,8 +162,8 @@ set_light_locked(unsigned int color, int blink)
     int err = 0;
     int red, green, blue;
 
-    if(colorstate == color &&
-            blinkstate == blink) {
+    if (colorstate == color &&
+        blinkstate == blink) {
         // don't bother changing if we don't have to
         return 0;
     } else {
@@ -216,10 +207,7 @@ set_light_battery(struct light_device_t* dev,
             blink = 0;
             break;
     }
-#if 0
-    LOGD("set_light_battery color=%08X, blink=%d****************\n",
-            state->color, blink);
-#endif
+
     if (state->color == 0xffff0000) {
         lowbattery = 1;
         err = set_light_locked(state->color, blink);
@@ -248,10 +236,7 @@ set_light_notification(struct light_device_t* dev,
             blink = 0;
             break;
     }
-#if 0
-    LOGD("set_light_notification color=%08X, blink=%d****************\n",
-            state->color, blink);
-#endif
+
     lastnotificationcolor = state->color;
     lastnotificationblink = blink;
     if (lowbattery == 0) {
@@ -265,34 +250,8 @@ static int
 set_light_attention(struct light_device_t* dev,
         struct light_state_t const* state)
 {
-    int err = 0;
-
-    /**
-     * we don't have a defined attention light, so ignore these
-     *
-
-    int blink;
-
-    switch (state->flashMode) {
-        case LIGHT_FLASH_HARDWARE:
-        case LIGHT_FLASH_TIMED:
-            blink = 1;
-            break;
-        case LIGHT_FLASH_NONE:
-        default:
-            blink = 0;
-            break;
-    }
-
-    LOGD("set_light_attention color=%08X, blink=%d****************\n",
-            state->color, blink);
-
-    err = set_light_locked(state->color, blink);
-
-     *
-     */
-
-    return err;
+    /* we don't have a defined attention light, so ignore these */
+    return 0;
 }
 
 static int
