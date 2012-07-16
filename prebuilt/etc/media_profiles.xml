@@ -37,7 +37,7 @@
 <!ATTLIST Audio sampleRate CDATA #REQUIRED>
 <!ATTLIST Audio channels (1|2) #REQUIRED>
 <!ELEMENT ImageEncoding EMPTY>
-<!ATTLIST ImageEncoding quality (100|80|70|60|50|40) #REQUIRED>
+<!ATTLIST ImageEncoding quality (95|80|70|60|50|40) #REQUIRED>
 <!ELEMENT ImageDecoding EMPTY>
 <!ATTLIST ImageDecoding memCap CDATA #REQUIRED>
 <!ELEMENT Camera EMPTY>
@@ -79,16 +79,29 @@
     <!-- Each camcorder profile defines a set of predefined configuration parameters -->
     <CamcorderProfiles cameraId="0">
 
-        <EncoderProfile quality="480p" fileFormat="mp4" duration="30">
+        <EncoderProfile quality="720p" fileFormat="mp4" duration="30">
             <Video codec="m4v"
                    bitRate="4000000"
-                   width="640"
+                   width="848"
+                   height="480"
+                   frameRate="20" />
+
+            <Audio codec="aac"
+                   bitRate="96000"
+                   sampleRate="16000"
+                   channels="1" />
+        </EncoderProfile>
+
+        <EncoderProfile quality="480p" fileFormat="mp4" duration="30">
+            <Video codec="m4v"
+                   bitRate="3000000"
+                   width="720"
                    height="480"
                    frameRate="24" />
 
             <Audio codec="aac"
                    bitRate="96000"
-                   sampleRate="44100"
+                   sampleRate="16000"
                    channels="1" />
         </EncoderProfile>
 
@@ -147,19 +160,19 @@
         <EncoderProfile quality="timelapse480p" fileFormat="mp4" duration="30">
             <Video codec="m4v"
                    bitRate="4000000"
-                   width="640"
+                   width="720"
                    height="480"
                    frameRate="24" />
             <!-- audio setting is ignored -->
             <Audio codec="aac"
                    bitRate="96000"
-                   sampleRate="44100"
+                   sampleRate="16000"
                    channels="1" />
         </EncoderProfile>
 
-        <ImageEncoding quality="100" />
-        <ImageEncoding quality="90" />
+        <ImageEncoding quality="95" />
         <ImageEncoding quality="80" />
+        <ImageEncoding quality="70" />
         <ImageDecoding memCap="20000000" />
 
     </CamcorderProfiles>
@@ -175,7 +188,7 @@
     -->
     <VideoEncoderCap name="h264" enabled="true"
         minBitRate="64000" maxBitRate="8000000"
-        minFrameWidth="176" maxFrameWidth="848"
+        minFrameWidth="176" maxFrameWidth="720"
         minFrameHeight="144" maxFrameHeight="480"
         minFrameRate="1" maxFrameRate="30" />
 
@@ -193,7 +206,7 @@
 
     <AudioEncoderCap name="aac" enabled="true"
         minBitRate="8192" maxBitRate="96000"
-        minSampleRate="16000" maxSampleRate="44100"
+        minSampleRate="16000" maxSampleRate="16000"
         minChannels="1" maxChannels="1" />
 
     <AudioEncoderCap name="amrnb" enabled="true"
@@ -203,7 +216,7 @@
 
     <AudioEncoderCap name="amrwb" enabled="true"
         minBitRate="6600" maxBitRate="23850"
-        minSampleRate="16000" maxSampleRate="44100"
+        minSampleRate="16000" maxSampleRate="16000"
         minChannels="1" maxChannels="1" />
 
     <!--
