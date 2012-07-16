@@ -171,6 +171,8 @@ static void Yuv422iToYV12(unsigned char *dest, unsigned char *src,
                           int width, int height, int stride)
 {
     int i, j;
+    int paddingY = stride - width;
+    int paddingC = paddingY / 2;
     unsigned char *src1;
     unsigned char *udest, *vdest;
 
@@ -181,13 +183,14 @@ static void Yuv422iToYV12(unsigned char *dest, unsigned char *src,
             *dest++ = src1[0];
             *dest++ = src1[2];
             src1 += 4;
+            dest += paddingY;
         }
     }
 
     /* copy the U and V values */
     src1 = src + width * 2;             /* next line */
     vdest = dest;
-    udest = dest + width * height / 4;
+    udest = dest + stride * height / 4;
 
     for (i = 0; i < height; i += 2) {
         for (j = 0; j < width; j += 2) {
@@ -198,6 +201,8 @@ static void Yuv422iToYV12(unsigned char *dest, unsigned char *src,
         }
         src = src1;
         src1 += width * 2;
+        udest += paddingC;
+        vdest += paddingC;
     }
 }
 
@@ -336,7 +341,7 @@ void CameraHAL_DataTSCb(nsecs_t timestamp, int32_t msg_type,
 {
     legacy_camera_device *lcdev = (legacy_camera_device *) user;
     camera_memory_t *mem = NULL;
-    int framesSent = 0;
+    unsigned int framesSent = 0;
 
     LOGVF("%s: timestamp:%lld msg_type:%d user:%p",
           __FUNCTION__, timestamp /1000, msg_type, user);
