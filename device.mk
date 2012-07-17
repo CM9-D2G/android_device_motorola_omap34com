@@ -46,7 +46,10 @@ PRODUCT_PACKAGES += \
 # ICS graphics
 PRODUCT_PACKAGES += \
 	libEGL libGLESv2 libGLESv1_CM \
-	libdsswbhal ti_wfd_libs libion
+	libdsswbhal ti_wfd_libs
+ifeq ($(TARGET_USES_ION),true)
+PRODUCT_PACKAGES += libion
+endif
 
 # Jpeg hw encoder/decoder
 PRODUCT_PACKAGES += \
