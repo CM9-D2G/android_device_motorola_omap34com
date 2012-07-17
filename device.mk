@@ -58,7 +58,7 @@ PRODUCT_PACKAGES += \
 
 # DSP
 PRODUCT_PACKAGES += \
-	dspexec libbridge
+	cexec.out libbridge
 
 # OMX
 PRODUCT_PACKAGES += \
