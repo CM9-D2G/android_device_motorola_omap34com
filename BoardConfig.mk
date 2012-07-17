@@ -54,6 +54,7 @@ GL_OES_compressed_ETC1_RGB8_texture := true
 BOARD_USES_OVERLAY := true
 USE_OPENGL_RENDERER := true
 TARGET_USE_OMX_RECOVERY := true
+TARGET_USES_ION := false
 
 # Recovery
 BOARD_HAS_LOCKED_BOOTLOADER := true
