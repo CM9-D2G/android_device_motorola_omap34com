@@ -53,8 +53,7 @@ endif
 
 # Jpeg hw encoder/decoder
 PRODUCT_PACKAGES += \
-	libstagefrighthw \
-	libOMX.TI.JPEG.Encoder libOMX.TI.JPEG.decoder \
+	libstagefrighthw
 
 # DSP
 PRODUCT_PACKAGES += \
@@ -66,6 +65,7 @@ PRODUCT_PACKAGES += \
 	libOMX_Core \
 	libOMX.TI.AAC.decode \
 	libOMX.TI.AAC.encode \
+	libOMX.TI.AMR.encode \
 	libOMX.TI.AMR.decode \
 	libOMX.TI.MP3.decode \
 	libOMX.TI.Video.Decoder \
@@ -73,6 +73,10 @@ PRODUCT_PACKAGES += \
 	libOMX.TI.WBAMR.decode \
 	libOMX.TI.WBAMR.encode \
 	libOMX.TI.WMA.decode \
+	libOMX.TI.JPEG.encoder \
+	libOMX.TI.JPEG.decoder \
+	libOMX.TI.ILBC.decode \
+	libOMX.TI.ILBC.encode \
 	libOMX.TI.VPP
 
 # Wifi
