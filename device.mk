@@ -61,7 +61,6 @@ PRODUCT_PACKAGES += \
 
 # OMX
 PRODUCT_PACKAGES += \
-	libLCML \
 	libOMX_Core \
 	libOMX.TI.AAC.decode \
 	libOMX.TI.AAC.encode \
@@ -77,7 +76,8 @@ PRODUCT_PACKAGES += \
 	libOMX.TI.JPEG.decoder \
 	libOMX.TI.ILBC.decode \
 	libOMX.TI.ILBC.encode \
-	libOMX.TI.VPP
+	libOMX.TI.VPP \
+#	libLCML
 
 # Wifi
 PRODUCT_PACKAGES += \
