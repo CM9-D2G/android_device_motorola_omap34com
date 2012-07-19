@@ -221,6 +221,10 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	ro.vold.umsdirtyratio=20 \
 	ro.usb.use_custom_service=1 \
 	ro.kernel.android.checkjni=0 \
+	dalvik.vm.dexopt-flags=m=y,v=n,o=v,u=n \
+	dalvik.vm.execution-mode=int:jit \
+	dalvik.vm.heapstartsize=5m \
+	dalvik.vm.heapsize=128m \
 	dalvik.vm.checkjni=false \
 	dev.pm.dyn_samplingrate=1 \
 	debug.enabletr=false \
@@ -231,7 +235,7 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	wifi.supplicant_scan_interval=180 \
 	wifi.hotspot.ti=1 \
 	wifi.ap.interface=tiap0 \
-	windowsmgr.max_events_per_sec=150 \
+	windowsmgr.max_events_per_sec=300 \
 	com.ti.omap_compat=1 \
 	com.ti.omap_enhancement=true
 
@@ -241,7 +245,6 @@ PRODUCT_TAGS += dalvik.gc.type-precise
 # still need to set english for audio init
 PRODUCT_LOCALES += en_US
 
-$(call inherit-product, frameworks/base/build/phone-hdpi-512-dalvik-heap.mk)
 $(call inherit-product, hardware/ti/omap3/Android.mk)
 $(call inherit-product-if-exists, vendor/cm/config/common_full_phone.mk)
 $(call inherit-product-if-exists, vendor/motorola/omap34com/device-vendor.mk)
