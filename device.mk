@@ -57,10 +57,11 @@ PRODUCT_PACKAGES += \
 
 # DSP
 PRODUCT_PACKAGES += \
-	cexec.out
+	cexec.out libbridge
 
 # OMX
 PRODUCT_PACKAGES += \
+        libLCML \
 	libOMX_Core \
 	libOMX.TI.AAC.decode \
 	libOMX.TI.AAC.encode \
@@ -228,7 +229,6 @@ PRODUCT_PROPERTY_OVERRIDES += \
 	dalvik.vm.checkjni=false \
 	dev.pm.dyn_samplingrate=1 \
 	debug.enabletr=false \
-	ro.sf.lcd_density=240 \
 	ro.min_pointer_dur=10 \
 	ro.opengles.version=131072 \
 	wifi.interface=tiwlan0 \
