@@ -48,7 +48,7 @@ private:
     typedef enum {
         UNKNOWN,
         CAM_SOC,
-        CAM_BAYER
+        CAM_BAYER,
         DROIDX,
         DROID2,
         DROID2WE,
