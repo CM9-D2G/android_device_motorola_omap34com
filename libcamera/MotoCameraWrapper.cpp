@@ -19,6 +19,7 @@
 #include <cmath>
 #include <dlfcn.h>
 #include <fcntl.h>
+#include <cutils/properties.h>
 #include <linux/videodev2.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
