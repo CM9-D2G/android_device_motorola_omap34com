@@ -47,8 +47,8 @@ public:
 private:
     typedef enum {
         UNKNOWN,
-        DEFY_GREEN,
-        DEFY_RED,
+        CAM_SOC,
+        CAM_BAYER
         DROIDX,
         DROID2,
         DROID2WE,
