@@ -19,7 +19,6 @@
 #include <cmath>
 #include <dlfcn.h>
 #include <fcntl.h>
-#include <cutils/properties.h>
 #include <linux/videodev2.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
@@ -31,7 +30,8 @@ namespace android {
 
 wp<MotoCameraWrapper> MotoCameraWrapper::singleton;
 
-static bool deviceCardMatches(const char *device, const char *matchCard)
+static bool
+deviceCardMatches(const char *device, const char *matchCard)
 {
     struct v4l2_capability caps;
     int fd = ::open(device, O_RDWR);
@@ -76,7 +76,8 @@ openMotoInterface(const char *libName, const char *funcName)
     return interface;
 }
 
-static void setSocTorchMode(bool enable)
+static void
+setSocTorchMode(bool enable)
 {
     int fd = ::open("/sys/class/leds/torch-flash/flash_light", O_WRONLY);
     if (fd >= 0) {
@@ -88,6 +89,7 @@ static void setSocTorchMode(bool enable)
 
 sp<MotoCameraWrapper> MotoCameraWrapper::createInstance(int cameraId)
 {
+    LOGV("%s :", __func__);
     if (singleton != NULL) {
         sp<MotoCameraWrapper> hardware = singleton.promote();
         if (hardware != NULL) {
@@ -112,9 +114,9 @@ sp<MotoCameraWrapper> MotoCameraWrapper::createInstance(int cameraId)
         type = DROIDPRO;
     } else if (strcmp(motodevice, "jordan") == 0) {
         if (deviceCardMatches("/dev/video3", "camise")) {
-            type = DEFY_GREEN;
+            type = CAM_SOC;
         } else if (deviceCardMatches("/dev/video0", "mt9p012")) {
-            type = DEFY_RED;
+	        type = CAM_BAYER;
         }
     }
 
@@ -124,16 +126,23 @@ sp<MotoCameraWrapper> MotoCameraWrapper::createInstance(int cameraId)
         case DROID2:
         case DROID2WE:
         case DROIDPRO:
+			LOGI("Detected DROID device\n");
+			/* entry point of DROID driver is android::CameraHal::createInstance() */
             motoInterface = openMotoInterface("libcamera.so", "_ZN7android9CameraHal14createInstanceEv");
             break;
-        case DEFY_RED:
-            motoInterface = openMotoInterface("libbayercamera.so", "_ZN7android9CameraHal14createInstanceEv");
+        case CAM_SOC:
+            LOGI("Detected SOC device\n");
+	        /* entry point of SOC driver is android::CameraHalSocImpl::createInstance() */
+	        motoInterface = openMotoInterface("libsoccamera.so", "_ZN7android16CameraHalSocImpl14createInstanceEv");
             break;
-        case DEFY_GREEN:
-            motoInterface = openMotoInterface("libsoccamera.so", "_ZN7android16CameraHalSocImpl14createInstanceEv");
+		case CAM_BAYER:
+            LOGI("Detected BAYER device\n");
+	        /* entry point of Bayer driver is android::CameraHal::createInstance() */
+	        motoInterface = openMotoInterface("libbayercamera.so", "_ZN7android9CameraHal14createInstanceEv");
             break;
         case UNKNOWN:
         default:
+			LOGE("Camera type detection failed");
             break;
     }
 
@@ -156,21 +165,14 @@ MotoCameraWrapper::MotoCameraWrapper(sp<CameraHardwareInterface>& motoInterface,
     mDataCbTimestamp(NULL),
     mCbUserData(NULL)
 {
-    if (type == DEFY_GREEN) {
+    if (type == CAM_SOC) {
         mTorchThread = new TorchEnableThread(this);
-        /*
-         * The camera lib initializes focus-mode with the value 'on', which is not in its
-         * own focus-mode-values list :-(
-         */
-        CameraParameters params = motoInterface->getParameters();
-        params.set(CameraParameters::KEY_FOCUS_MODE, CameraParameters::FOCUS_MODE_AUTO);
-        motoInterface->setParameters(params);
     }
 }
 
 MotoCameraWrapper::~MotoCameraWrapper()
 {
-    if (mCameraType == DEFY_GREEN) {
+    if (mCameraType == CAM_SOC) {
         setSocTorchMode(false);
         mTorchThread->cancelAndWait();
         mTorchThread.clear();
@@ -180,25 +182,28 @@ MotoCameraWrapper::~MotoCameraWrapper()
 void
 MotoCameraWrapper::toggleTorchIfNeeded()
 {
-    if (mCameraType == DEFY_GREEN) {
+    if (mCameraType == CAM_SOC) {
         setSocTorchMode(mFlashMode == CameraParameters::FLASH_MODE_TORCH);
     }
 }
 
-sp<IMemoryHeap> MotoCameraWrapper::getPreviewHeap() const
+sp<IMemoryHeap>
+MotoCameraWrapper::getPreviewHeap() const
 {
     return mMotoInterface->getPreviewHeap();
 }
 
-sp<IMemoryHeap> MotoCameraWrapper::getRawHeap() const
+sp<IMemoryHeap>
+MotoCameraWrapper::getRawHeap() const
 {
     return mMotoInterface->getRawHeap();
 }
 
-void MotoCameraWrapper::setCallbacks(notify_callback notify_cb,
-                                     data_callback data_cb,
-                                     data_callback_timestamp data_cb_timestamp,
-                                     void* user)
+void
+MotoCameraWrapper::setCallbacks(notify_callback notify_cb,
+                                  data_callback data_cb,
+                                  data_callback_timestamp data_cb_timestamp,
+                                  void* user)
 {
     mNotifyCb = notify_cb;
     mDataCb = data_cb;
@@ -208,11 +213,9 @@ void MotoCameraWrapper::setCallbacks(notify_callback notify_cb,
     if (mNotifyCb != NULL) {
         notify_cb = &MotoCameraWrapper::notifyCb;
     }
-
     if (mDataCb != NULL) {
         data_cb = &MotoCameraWrapper::dataCb;
     }
-
     if (mDataCbTimestamp != NULL) {
         data_cb_timestamp = &MotoCameraWrapper::dataCbTimestamp;
     }
@@ -220,7 +223,8 @@ void MotoCameraWrapper::setCallbacks(notify_callback notify_cb,
     mMotoInterface->setCallbacks(notify_cb, data_cb, data_cb_timestamp, this);
 }
 
-void MotoCameraWrapper::notifyCb(int32_t msgType, int32_t ext1, int32_t ext2, void* user)
+void
+MotoCameraWrapper::notifyCb(int32_t msgType, int32_t ext1, int32_t ext2, void* user)
 {
     MotoCameraWrapper *_this = (MotoCameraWrapper *) user;
     user = _this->mCbUserData;
@@ -228,11 +232,11 @@ void MotoCameraWrapper::notifyCb(int32_t msgType, int32_t ext1, int32_t ext2, vo
     if (msgType == CAMERA_MSG_FOCUS) {
         _this->toggleTorchIfNeeded();
     }
-
     _this->mNotifyCb(msgType, ext1, ext2, user);
 }
 
-void MotoCameraWrapper::dataCb(int32_t msgType, const sp<IMemory>& dataPtr, void* user)
+void
+MotoCameraWrapper::dataCb(int32_t msgType, const sp<IMemory>& dataPtr, void* user)
 {
     MotoCameraWrapper *_this = (MotoCameraWrapper *) user;
     user = _this->mCbUserData;
@@ -243,15 +247,16 @@ void MotoCameraWrapper::dataCb(int32_t msgType, const sp<IMemory>& dataPtr, void
 
     _this->mDataCb(msgType, dataPtr, user);
 
-    if (msgType == CAMERA_MSG_RAW_IMAGE ||
-        msgType == CAMERA_MSG_COMPRESSED_IMAGE) {
-        if (_this->mTorchThread != NULL)
+    if (msgType == CAMERA_MSG_RAW_IMAGE || msgType == CAMERA_MSG_COMPRESSED_IMAGE) {
+        if (_this->mTorchThread != NULL) {
             _this->mTorchThread->scheduleTorch();
+        }
     }
  }
 
-void MotoCameraWrapper::dataCbTimestamp(nsecs_t timestamp, int32_t msgType,
-                                        const sp<IMemory>& dataPtr, void* user)
+void
+MotoCameraWrapper::dataCbTimestamp(nsecs_t timestamp, int32_t msgType,
+                                     const sp<IMemory>& dataPtr, void* user)
 {
     MotoCameraWrapper *_this = (MotoCameraWrapper *) user;
     user = _this->mCbUserData;
@@ -267,14 +272,15 @@ void MotoCameraWrapper::dataCbTimestamp(nsecs_t timestamp, int32_t msgType,
  * data bytes. As the output format of Motorola's libcamera is static,
  * this should be fine until Motorola fixes their lib.
  */
-void MotoCameraWrapper::fixUpBrokenGpsLatitudeRef(const sp<IMemory>& dataPtr)
+void
+MotoCameraWrapper::fixUpBrokenGpsLatitudeRef(const sp<IMemory>& dataPtr)
 {
     ssize_t offset;
     size_t size;
     sp<IMemoryHeap> heap = dataPtr->getMemory(&offset, &size);
     uint8_t *data = (uint8_t*)heap->base();
 
-    if (data) {
+    if (data != NULL) {
         data += offset;
 
         /* scan first 512 bytes for GPS latitude ref marker */
@@ -298,89 +304,106 @@ void MotoCameraWrapper::fixUpBrokenGpsLatitudeRef(const sp<IMemory>& dataPtr)
     }
 }
 
-void MotoCameraWrapper::enableMsgType(int32_t msgType)
+void
+MotoCameraWrapper::enableMsgType(int32_t msgType)
 {
     mMotoInterface->enableMsgType(msgType);
 }
 
-void MotoCameraWrapper::disableMsgType(int32_t msgType)
+void
+MotoCameraWrapper::disableMsgType(int32_t msgType)
 {
     mMotoInterface->disableMsgType(msgType);
 }
 
-bool MotoCameraWrapper::msgTypeEnabled(int32_t msgType)
+bool
+MotoCameraWrapper::msgTypeEnabled(int32_t msgType)
 {
     return mMotoInterface->msgTypeEnabled(msgType);
 }
 
-status_t MotoCameraWrapper::startPreview()
+status_t
+MotoCameraWrapper::startPreview()
 {
     return mMotoInterface->startPreview();
 }
 
-bool MotoCameraWrapper::useOverlay()
+bool
+MotoCameraWrapper::useOverlay()
 {
     return mMotoInterface->useOverlay();
 }
 
-status_t MotoCameraWrapper::setOverlay(const sp<Overlay> &overlay)
+status_t
+MotoCameraWrapper::setOverlay(const sp<Overlay> &overlay)
 {
     return mMotoInterface->setOverlay(overlay);
 }
 
-void MotoCameraWrapper::stopPreview()
+void
+MotoCameraWrapper::stopPreview()
 {
     mMotoInterface->stopPreview();
 }
 
-bool MotoCameraWrapper::previewEnabled()
+bool
+MotoCameraWrapper::previewEnabled()
 {
     return mMotoInterface->previewEnabled();
 }
 
-status_t MotoCameraWrapper::startRecording()
+status_t
+MotoCameraWrapper::startRecording()
 {
     toggleTorchIfNeeded();
     return mMotoInterface->startRecording();
 }
 
-void MotoCameraWrapper::stopRecording()
+void
+MotoCameraWrapper::stopRecording()
 {
     toggleTorchIfNeeded();
     mMotoInterface->stopRecording();
 }
 
-bool MotoCameraWrapper::recordingEnabled()
+bool
+MotoCameraWrapper::recordingEnabled()
 {
     return mMotoInterface->recordingEnabled();
 }
 
-void MotoCameraWrapper::releaseRecordingFrame(const sp<IMemory>& mem)
+void
+MotoCameraWrapper::releaseRecordingFrame(const sp<IMemory>& mem)
 {
     return mMotoInterface->releaseRecordingFrame(mem);
 }
 
-status_t MotoCameraWrapper::autoFocus()
+status_t
+MotoCameraWrapper::autoFocus()
 {
     return mMotoInterface->autoFocus();
 }
 
-status_t MotoCameraWrapper::cancelAutoFocus()
+status_t
+MotoCameraWrapper::cancelAutoFocus()
 {
     return mMotoInterface->cancelAutoFocus();
 }
 
-status_t MotoCameraWrapper::takePicture()
+status_t
+MotoCameraWrapper::takePicture()
 {
     return mMotoInterface->takePicture();
 }
 
-status_t MotoCameraWrapper::cancelPicture()
+status_t
+MotoCameraWrapper::cancelPicture()
 {
     return mMotoInterface->cancelPicture();
 }
 
-status_t MotoCameraWrapper::setParameters(const CameraParameters& params)
+status_t
+MotoCameraWrapper::setParameters(const CameraParameters& params)
 {
     CameraParameters pars(params.flatten());
     String8 oldFlashMode = mFlashMode;
@@ -391,9 +414,10 @@ status_t MotoCameraWrapper::setParameters(const CameraParameters& params)
     bool isWide;
 
     /*
-     * getInt returns -1 if the value isn't present and 0 on parse failure
+     * getInt returns -1 if the value isn't present and 0 on parse failure,
+     * so if it's larger than 0, we can be sure the value was parsed properly
      */
-    mVideoMode = pars.getInt("cam-mode") == 0;
+    mVideoMode = pars.getInt("cam-mode") > 0;
     pars.remove("cam-mode");
 
     pars.getPreviewSize(&width, &height);
@@ -402,17 +426,15 @@ status_t MotoCameraWrapper::setParameters(const CameraParameters& params)
     if (isWide && !mVideoMode) {
         pars.setPreviewFrameRate(24);
     }
-
-    if (mCameraType == DEFY_RED && mVideoMode) {
+    if (mCameraType == CAM_BAYER && mVideoMode) {
         pars.setPreviewFrameRate(24);
     }
 
     sceneMode = pars.get(CameraParameters::KEY_SCENE_MODE);
     if (sceneMode != CameraParameters::SCENE_MODE_AUTO) {
         /* The lib doesn't seem to update the flash mode correctly when a scene
-         * mode is set, so we need to do it here. Also do focus mode, just do
-         * be on the safe side.
-         */
+           mode is set, so we need to do it here. Also do focus mode, just do
+           be on the safe side. */
         pars.set(CameraParameters::KEY_FOCUS_MODE, CameraParameters::FOCUS_MODE_AUTO);
 
         if (sceneMode == CameraParameters::SCENE_MODE_PORTRAIT ||
@@ -426,10 +448,8 @@ status_t MotoCameraWrapper::setParameters(const CameraParameters& params)
 
     mFlashMode = pars.get(CameraParameters::KEY_FLASH_MODE);
     float exposure = pars.getFloat(CameraParameters::KEY_EXPOSURE_COMPENSATION);
-    /*
-     * Exposure-compensation comes multiplied in the -9...9 range, while
-     * we need it in the -3...3 range -> adjust for that
-     */
+    /* exposure-compensation comes multiplied in the -9...9 range, while
+       we need it in the -3...3 range -> adjust for that */
     exposure /= 3;
 
     /* format the setting in a way the lib understands */
@@ -449,13 +469,21 @@ status_t MotoCameraWrapper::setParameters(const CameraParameters& params)
     return retval;
 }
 
-CameraParameters MotoCameraWrapper::getParameters() const
+CameraParameters
+MotoCameraWrapper::getParameters() const
 {
     CameraParameters ret = mMotoInterface->getParameters();
 
+    if (mCameraType == CAM_SOC) {
+        /* the original zoom ratio string is '100,200,300,400,500,600',
+           but 500 and 600 are broken for the SOC camera, so limiting
+           it here */
+        ret.set(CameraParameters::KEY_MAX_ZOOM, "3");
+        ret.set(CameraParameters::KEY_ZOOM_RATIOS, "100,200,300,400");
+    }
+
     /* cut down supported effects to values supported by framework */
-    ret.set(CameraParameters::KEY_SUPPORTED_EFFECTS,
-            "none,mono,sepia,negative,solarize,red-tint,green-tint,blue-tint");
+    ret.set(CameraParameters::KEY_SUPPORTED_EFFECTS, "none,mono,sepia,negative,solarize,red-tint,green-tint,blue-tint");
 
     /* Motorola uses mot-exposure-offset instead of exposure-compensation
        for whatever reason -> adapt the values.
@@ -469,45 +497,29 @@ CameraParameters MotoCameraWrapper::getParameters() const
     ret.set(CameraParameters::KEY_MIN_EXPOSURE_COMPENSATION, "-9");
     ret.set(CameraParameters::KEY_EXPOSURE_COMPENSATION_STEP, "0.3333333333333");
     ret.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT, CameraParameters::PIXEL_FORMAT_YUV422I);
+    ret.set(CameraParameters::KEY_PREVIEW_FRAME_RATE, "24");
+    ret.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE, "1000,24000");
+    ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "1000,24000");
 
-    /* Device specific options */
-    switch (mCameraType) {
-        case DEFY_GREEN:
-            /*
-             * The original zoom ratio string is '100,200,300,400,500,600',
-             * but 500 and 600 are broken for the SOC camera, so limiting
-             * it here
-             */
-            ret.set(CameraParameters::KEY_MAX_ZOOM, "3");
-            ret.set(CameraParameters::KEY_ZOOM_RATIOS, "100,200,300,400");
-            ret.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE,
-                    "(1000,30000),(1000,25000),(1000,20000),(1000,24000),(1000,15000),(1000,10000)");
-            ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "1000, 30000");
-            break;
-        case DEFY_RED:
-            ret.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE,
-                    "(1000,30000),(1000,25000),(1000,20000),(1000,24000),(1000,15000),(1000,10000)");
-            ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "1000, 30000");
-            break;
-        default:
-            break;
-    }
     ret.set("cam-mode", mVideoMode ? "1" : "0");
 
     return ret;
 }
 
-status_t MotoCameraWrapper::sendCommand(int32_t cmd, int32_t arg1, int32_t arg2)
+status_t
+MotoCameraWrapper::sendCommand(int32_t cmd, int32_t arg1, int32_t arg2)
 {
     return mMotoInterface->sendCommand(cmd, arg1, arg2);
 }
 
-void MotoCameraWrapper::release()
+void
+MotoCameraWrapper::release()
 {
     mMotoInterface->release();
 }
 
-status_t MotoCameraWrapper::dump(int fd, const Vector<String16>& args) const
+status_t
+MotoCameraWrapper::dump(int fd, const Vector<String16>& args) const
 {
     return mMotoInterface->dump(fd, args);
 }
