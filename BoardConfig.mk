@@ -47,7 +47,6 @@ endif
 # Graphics
 BOARD_EGL_CFG := device/motorola/omap34com/prebuilt/etc/egl.cfg
 COMMON_GLOBAL_CFLAGS += -DOMAP_COMPAT -DBINDER_COMPAT
-BOARD_WITHOUT_HW_COMPOSER := true
 DEFAULT_FB_NUM := 0
 GL_OES_compressed_ETC1_RGB8_texture := true
 BOARD_USES_OVERLAY := true
