@@ -73,7 +73,6 @@ PRODUCT_PACKAGES += \
 	libOMX.TI.WBAMR.decode \
 	libOMX.TI.WBAMR.encode \
 	libOMX.TI.WMA.decode \
-	libOMX.TI.JPEG.Encoder \
 	libOMX.TI.JPEG.decoder \
 	libOMX.TI.ILBC.decode \
 	libOMX.TI.ILBC.encode \
