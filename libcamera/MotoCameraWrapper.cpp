@@ -19,7 +19,6 @@
 #include <cmath>
 #include <dlfcn.h>
 #include <fcntl.h>
-#include <cutils/properties.h>
 #include <linux/videodev2.h>
 #include <sys/ioctl.h>
 #include <sys/stat.h>
@@ -115,7 +114,7 @@ sp<MotoCameraWrapper> MotoCameraWrapper::createInstance(int cameraId)
         type = DROIDPRO;
     } else if (strcmp(motodevice, "jordan") == 0) {
         if (deviceCardMatches("/dev/video3", "camise")) {
-            type = CAM_SOC;
+	        type = CAM_SOC;
         } else if (deviceCardMatches("/dev/video0", "mt9p012")) {
 	        type = CAM_BAYER;
         }
@@ -499,8 +498,26 @@ MotoCameraWrapper::getParameters() const
     ret.set(CameraParameters::KEY_EXPOSURE_COMPENSATION_STEP, "0.3333333333333");
     ret.set(CameraParameters::KEY_VIDEO_FRAME_FORMAT, CameraParameters::PIXEL_FORMAT_YUV422I);
     ret.set(CameraParameters::KEY_PREVIEW_FRAME_RATE, "24");
-    ret.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE, "1000,24000");
-    ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "1000,24000");
+    
+    /* Device specific options */
+    switch (mCameraType) {
+        case DROIDX:
+        case DROID2:
+        case DROID2WE:
+        case DROIDPRO:
+            /* God knows what I'm about to break here, but this should keep Droid
+               cameras from crashing and reinitializing the HAL */
+            ret.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE, "15000,30000");
+            ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "15000,30000");
+            break;
+        case DEFY_SOC:
+        case DEFY_BAYER:
+            ret.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE, "1000,24000");
+            ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "1000,24000");
+            break;
+        default:
+            break;
+    }
 
     ret.set("cam-mode", mVideoMode ? "1" : "0");
 
