@@ -511,8 +511,8 @@ MotoCameraWrapper::getParameters() const
             ret.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE, "15000,30000");
             ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "15000,30000");
             break;
-        case DEFY_SOC:
-        case DEFY_BAYER:
+        case CAM_SOC:
+        case CAM_BAYER:
             ret.set(CameraParameters::KEY_SUPPORTED_PREVIEW_FPS_RANGE, "1000,24000");
             ret.set(CameraParameters::KEY_PREVIEW_FPS_RANGE, "1000,24000");
             break;
