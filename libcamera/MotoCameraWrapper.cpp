@@ -113,6 +113,8 @@ sp<MotoCameraWrapper> MotoCameraWrapper::createInstance(int cameraId)
         type = DROID2WE;
     } else if (strcmp(motodevice, "venus2") == 0) {
         type = DROIDPRO;
+    } else if (strcmp(motodevice, "cdma_kronos") == 0) {
+        type = XPRT;
     } else if (strcmp(motodevice, "jordan") == 0) {
         if (deviceCardMatches("/dev/video3", "camise")) {
 	        type = CAM_SOC;
@@ -127,6 +129,7 @@ sp<MotoCameraWrapper> MotoCameraWrapper::createInstance(int cameraId)
         case DROID2:
         case DROID2WE:
         case DROIDPRO:
+        case XPRT:
 			LOGI("Detected DROID device\n");
 			/* entry point of DROID driver is android::CameraHal::createInstance() */
             motoInterface = openMotoInterface("libcamera.so", "_ZN7android9CameraHal14createInstanceEv");
